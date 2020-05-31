@@ -12,7 +12,7 @@
 #include <QDebug>
 #include <QtSql>
 
-/*静态成员变量必须初始化，否则没机会分配空间了*/
+/* 静态成员变量必须初始化，否则没机会分配空间了 */
 QSqlDatabase database::m_db = QSqlDatabase::addDatabase("QMYSQL");
 
 int database:: m_dbStateFlag = DATABASE_STATE_STEP_INIT;
@@ -97,6 +97,7 @@ bool database::Open()
     qDebug(__FUNCTION__);
     return true;
 }
+
 void database::Close()
 {
     if (DATABASE_STATE_STEP_OPEN != m_dbStateFlag)
@@ -106,4 +107,3 @@ void database::Close()
     m_db.close();
     m_dbStateFlag = DATABASE_STATE_STEP_COMPLETE;
 }
-

@@ -28,24 +28,21 @@ Register::~Register()
 void Register::on_btnOk_clicked()
 {
     QString username, passwd, confirmPasswd, sex, address, phoneNum,NiName;
-    //打开数据库
     if(!database::Open()){
-        QMessageBox::about(0,tr("错误"),tr("打开数据库失败\n%1"));
+        QMessageBox::about(0,tr("error"),tr("open database fail\n%1"));
         return ;
     }
-    //判断帐号是否为空
     if(!ui->leUsername->text().isEmpty())
         username = ui->leUsername->text();
     else{
-        QMessageBox::about(0,tr("提示"),tr("用户名不能为空"));
+        QMessageBox::about(0,tr("prompt"),tr("username is null"));
         database::Close();
         return ;
     }
-    //判断密码是否为空
     if(!ui->lePasswd->text().isEmpty())
         passwd = ui->lePasswd->text();
     else{
-        QMessageBox::about(0,tr("提示"),tr("密码不能为空"));
+        QMessageBox::about(0,tr("prompt"),tr("password is null"));
         database::Close();
         return ;
     }
@@ -54,7 +51,7 @@ void Register::on_btnOk_clicked()
     if(!ui->leConfimPasswd->text().isEmpty())
         confirmPasswd = ui->leConfimPasswd->text();
     else{
-        QMessageBox::about(0,tr("提示"),tr("确认密码不能为空"));
+        QMessageBox::about(0,tr("prompt"),tr("password is null"));
         database::Close();
         return ;
     }
@@ -65,7 +62,7 @@ void Register::on_btnOk_clicked()
     if(!ui->lePhoneNum->text().isEmpty())
         phoneNum = ui->lePhoneNum->text();
     if(passwd.compare(confirmPasswd) != 0){
-        QMessageBox::about(0,tr("提示"),tr("确认密码与密码不同"));
+        QMessageBox::about(0,tr("prompt"),tr("password is error"));
         database::Close();
         return ;
     }
@@ -90,7 +87,7 @@ void Register::on_btnOk_clicked()
     database::Close();
     this->close();
 }
-//退出
+
 void Register::on_btnQuit_clicked()
 {
     this->close();

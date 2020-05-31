@@ -13,13 +13,11 @@ public:
             QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
 
     bool setSource(QCamera *pCamera);
+private slots:
+	virtual bool present(const QVideoFrame &frame);
 
 signals:
-    /*视频帧捕获信号*/
     void CaptureFrame(const QVideoFrame &frame);
-
-private slots:
-    virtual bool present(const QVideoFrame &frame);
 
 private:
      QVideoProbe m_Probe;/*android下,目前只能用probe捕获视频*/

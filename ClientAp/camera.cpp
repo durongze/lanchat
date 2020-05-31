@@ -58,6 +58,7 @@ Q_DECLARE_METATYPE(QCameraInfo)
 
 Camera* Camera::instanceCamera = NULL;
 
+/* 通过发信号告诉主程序建立本地视频服务器, 借鉴传输文件 */
 Camera::Camera(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Camera),
@@ -69,19 +70,19 @@ Camera::Camera(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //Camera devices:
+    // Camera devices:
     QActionGroup *videoDevicesGroup = new QActionGroup(this);
     videoDevicesGroup->setExclusive(true);
 
-    //The QCameraInfo class provides general information about camera devices.
+    // The QCameraInfo class provides general information about camera devices.
     foreach (const QCameraInfo &cameraInfo, QCameraInfo::availableCameras()) {
 
-        //The QAction class provides an abstract user interface action that can be inserted into widgets.
+        // The QAction class provides an abstract user interface action that can be inserted into widgets.
         QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
 
         videoDeviceAction->setCheckable(true);
 
-        //The QVariant class acts like a union for the most common Qt data types.
+        // The QVariant class acts like a union for the most common Qt data types.
         videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
 
         if (cameraInfo == QCameraInfo::defaultCamera())
@@ -89,7 +90,7 @@ Camera::Camera(QWidget *parent) :
 
         ui->menuDevices->addAction(videoDeviceAction);
     }
-    //通过发信号告诉主程序建立本地视频服务器//借鉴传输文件
+
 
     connect(videoDevicesGroup, SIGNAL(triggered(QAction*)), SLOT(updateCameraDevice(QAction*)));
     connect(ui->captureWidget, SIGNAL(currentChanged(int)), SLOT(updateCaptureMode()));
@@ -111,15 +112,18 @@ Camera* Camera::getCamera()
         instanceCamera = new Camera;
     return instanceCamera;
 }
+
 void Camera::delCamera()
 {
     if (NULL  !=  Camera::instanceCamera)
         delete instanceCamera;
     instanceCamera = NULL;
 }
+
+/* 发送视频到远端 */
 bool Camera::sendVideo(const QVideoFrame &frame)
 {
-    //发送视频到远端
+
     Q_UNUSED(frame);
     if (frame.isValid()) {
         QVideoFrame cloneFrame(frame);

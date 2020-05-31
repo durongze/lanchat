@@ -38,9 +38,7 @@ class Widget : public QWidget
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
-    //获取帐号
     QString getUserName();
-    //给Name赋值
     void SetName(QString);
 
 
@@ -54,7 +52,6 @@ protected:
     void hasPendingCamera(QString localHostName, QString serverAddress,QString clientAddress,QString CameraName);
     void hasPendingSpeeker(QString localHostName, QString serverAddress,QString clientAddress,QString speekerName);
 private:
-    //保存用户名
     QString Name;
     Ui::Widget *ui;
     QUdpSocket *udpSocket;
@@ -69,6 +66,9 @@ private slots:
 
     void closeFromChat(QString);     
     void sendMessagesToMain(QString,QString);
+    void processPendingDatagramsStartChat(QDataStream& in);
+    void processPendingDatagramsAskStartChat(QDataStream& in);
+    void processPendingDatagramsMessage(QDataStream& in);
     void processPendingDatagrams();
     void sentFileName(QString,QString);
     void hasFileToSend(QString,QString);
@@ -77,7 +77,7 @@ signals:
     void sendMessagesZ(QString address,QString first,QString second);
  /*托盘*/
 private:
-    void showMessage(char *msg);
+    void showMessage(const char *msg);
     void createActions();
     void createTrayIcon();
 
@@ -92,7 +92,7 @@ private slots:
     void showMessage();
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void on_tableWidget_clicked(const QModelIndex &index);
-    void contextMenuEvent( QContextMenuEvent * event );//右键槽函数
+    void contextMenuEvent( QContextMenuEvent * event );
 };
 
 #endif // WIDGET_H

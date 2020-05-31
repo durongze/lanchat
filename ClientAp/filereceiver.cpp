@@ -9,6 +9,7 @@
 #include "ui_filereceiver.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QDebug>
 
 //接收方 连接信号槽  有数据读入 触发readmessage
 fileReceiver::fileReceiver(QWidget *parent) :
@@ -53,7 +54,7 @@ void fileReceiver::setHostAddress(QHostAddress address)
     hostAddress = address;
     newConnect();
 }
-//连接服务器
+/* 连接服务器 */
 void fileReceiver::newConnect()
 {
     blockSize = 0;
@@ -62,7 +63,7 @@ void fileReceiver::newConnect()
     time.start();
 }
 
-//槽 读取收到的文件
+/* 槽 读取收到的文件 */
 void fileReceiver::readMessage()
 {
     QDataStream in(FileReceiver);
@@ -97,12 +98,11 @@ void fileReceiver::readMessage()
     qDebug()<<bytesReceived<<"received"<<TotalBytes;
 
     double speed = bytesReceived / useTime;
-    ui->FileReceiverStatusLabel->setText(tr("已接收 %1MB (%2MB/s) \n共%3MB 已用时:%4秒\n估计剩余时间：%5秒")
-                                         .arg(bytesReceived / (1024*1024))//已接收
-                                         .arg(speed*1000/(1024*1024),0,'f',2)//速度
-                                         .arg(TotalBytes / (1024 * 1024))//总大小
-                                         .arg(useTime/1000,0,'f',0)//用时
-                                         .arg(TotalBytes/speed/1000 - useTime/1000,0,'f',0));//剩余时间
+    ui->FileReceiverStatusLabel->setText(tr("received %1MB\n").arg(bytesReceived / (1024*1024)));
+    ui->FileReceiverStatusLabel->setText(tr("(%1MB/s) \n").arg(speed*1000/(1024*1024),0,'f',2));
+    ui->FileReceiverStatusLabel->setText(tr("cnt %1MB\n").arg(TotalBytes / (1024 * 1024)));
+    ui->FileReceiverStatusLabel->setText(tr("used time:%1s\n").arg(useTime/1000,0,'f',0));
+    ui->FileReceiverStatusLabel->setText(tr(" time:%1s \n").arg(TotalBytes/speed/1000 - useTime/1000,0,'f',0));
 
     if(bytesReceived == TotalBytes)
     {

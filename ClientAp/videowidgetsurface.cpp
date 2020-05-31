@@ -18,15 +18,15 @@ QList<QVideoFrame::PixelFormat> VideoWidgetSurface::supportedPixelFormats(QAbstr
     return lst;
 }
 
-/*捕获视频帧.windows下格式是RGB32;android下是NV21*/
+/* 捕获视频帧.windows下格式是RGB32;android下是NV21 */
 bool VideoWidgetSurface::present(const QVideoFrame &frame)
 {
-    //qDebug("CCaptureVideoFrame::present format:%d", frame.pixelFormat());
+    // qDebug("CCaptureVideoFrame::present format:%d", frame.pixelFormat());
     emit CaptureFrame(frame);
     return true;
 }
 
-/*根据不同的平台,设置捕获方式*/
+/* 根据不同的平台,设置捕获方式, windows下,只能用下面方式捕获视频 */
 bool VideoWidgetSurface::setSource(QCamera *pCamera)
 {
     bool ret = true;
@@ -39,7 +39,6 @@ bool VideoWidgetSurface::setSource(QCamera *pCamera)
                           SLOT(present(QVideoFrame)));
     }
 #else
-    /*windows下,只能用下面方式捕获视频*/
     pCamera->setViewfinder(this);
 #endif
     return ret;

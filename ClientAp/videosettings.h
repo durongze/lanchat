@@ -44,6 +44,7 @@
 #include <QDialog>
 #include <QAudioEncoderSettings>
 #include <QVideoEncoderSettings>
+#include <QComboBox>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;

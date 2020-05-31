@@ -112,11 +112,11 @@ protected:
 
 private:
     Ui::Camera *ui;
-    /*QVideoWidget搭配使用用来显示摄像机视频*/
+    /* QVideoWidget搭配使用用来显示摄像机视频 */
     QCamera *camera;
-    /*QCameraimageCapture可以抓拍摄像机图像*/
+    /* QCameraimageCapture可以抓拍摄像机图像 */
     QCameraImageCapture *imageCapture;
-    /*QMediaRecoder可以保存摄像机视频*/
+    /* QMediaRecoder可以保存摄像机视频 */
     QMediaRecorder* mediaRecorder;
 
     QImageEncoderSettings imageSettings;

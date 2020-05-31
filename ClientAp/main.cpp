@@ -13,12 +13,13 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include "trace.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    //QTextCodec::setCodecForTr(QTextCodec::codecForName("utf-8"));
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
     QCoreApplication::addLibraryPath("./plugins");
-    qDebug()<<QSqlDatabase::drivers();
+    qDebug() << QSqlDatabase::drivers();
     Login login;
     login.show();
     return a.exec();

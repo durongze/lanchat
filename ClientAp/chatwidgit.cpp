@@ -43,7 +43,7 @@ QString simplifyRichText( QString f_richText )
 
 
 
-//初始化    连接编辑框 和字体装换的信号与槽  设置位置。。
+/* 初始化    连接编辑框 和字体装换的信号与槽  设置位置 */
 ChatWidgit::ChatWidgit(QWidget *parent) :
         QWidget(parent),
         ui(new Ui::ChatWidgit)
@@ -144,12 +144,12 @@ void ChatWidgit::setSecAddr(QString addr,QString niname)
     this->setWindowTitle(tr("聊天--%1").arg(niname));
 }
 
-//发送消息给聊天人 触发主窗口的槽函数  并显示储存消息
+/* 发送消息给聊天人 触发主窗口的槽函数  并显示储存消息 */
 void ChatWidgit::on_btnSend_clicked()
 {
     if(ui->teEdit->toPlainText() == "")
     {
-        QMessageBox::warning(0,tr("警告"),tr("发送内容不能为空"),QMessageBox::Ok);
+        QMessageBox::warning(0,tr("warning"),tr("msg is null"),QMessageBox::Ok);
         return;
     }
     QString time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
@@ -157,7 +157,7 @@ void ChatWidgit::on_btnSend_clicked()
     if(secretAddress != "NULL"){
         ui->tbShow->setTextColor(Qt::blue);
         ui->tbShow->setCurrentFont(QFont("Times New Roman",12));
-        ui->tbShow->append(tr("[ 你说 ]  %1").arg(time));
+        ui->tbShow->append(tr("[ MM ]  %1").arg(time));
         ui->tbShow->append(message);
 
         if(!saveFile.open(QFile::WriteOnly | QFile::Text | QFile::Append))
@@ -189,21 +189,21 @@ void ChatWidgit::on_textbold_clicked(bool checked)
     ui->teEdit->setFocus();
 }
 
-//倾斜
+/* 倾斜 */
 void ChatWidgit::on_textitalic_clicked(bool checked)
 {
     ui->teEdit->setFontItalic(checked);
     ui->teEdit->setFocus();
 }
 
-//下滑线
+/* 下滑线 */
 void ChatWidgit::on_textunderline_clicked(bool checked)
 {
     ui->teEdit->setFontUnderline(checked);
     ui->teEdit->setFocus();
 }
 
-//颜色
+/* 颜色 */
 void ChatWidgit::on_textcolor_clicked()
 {
     QColor color = QColorDialog::getColor(color,this);
@@ -213,7 +213,7 @@ void ChatWidgit::on_textcolor_clicked()
         ui->teEdit->setFocus();
     }
 }
-//事件处理  在输入时按下ctrl + enter 发送
+/* 事件处理  在输入时按下ctrl + enter 发送 */
 bool ChatWidgit::eventFilter(QObject *target, QEvent *event)
 {
     if(target == ui->teEdit)
@@ -232,45 +232,45 @@ bool ChatWidgit::eventFilter(QObject *target, QEvent *event)
     return QWidget::eventFilter(target,event);
 }
 
-//聊天窗口关闭槽函数  发送信号 让主窗体删除 map 表项
-void ChatWidgit::closeEvent(QCloseEvent *)//离开时触发的  应该检查窗口是否都关闭了！！
+/* 聊天窗口关闭槽函数  发送信号 让主窗体删除 map 表项 */
+void ChatWidgit::closeEvent(QCloseEvent *)
 {
     emit closeChat(secretAddress);
-    //    this->destroyed(0);
+    // this->destroyed(0);
 }
 
-//关闭 触发槽
+/* 关闭 触发槽 */
 void ChatWidgit::on_btnClose_clicked()
 {
     this->hide();
 }
 
-//清空聊天框内容
+/* 清空聊天框内容 */
 void ChatWidgit::on_textBin_clicked()
 {
     ui->tbShow->clear();
 }
 
-//发送文件 触发主窗口的槽  让接收方确认  群发时此按钮hide
+/* 发送文件 触发主窗口的槽  让接收方确认  群发时此按钮hide */
 void ChatWidgit::on_textSave_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this);
     if(fileName.isEmpty())
     {
-        QMessageBox::information(this,tr("警告"),tr("请选择文件"));
+        QMessageBox::information(this,tr("warning"),tr("select file"));
         return;
     }
 
     emit sendFile(fileName,secretAddress);
 }
 
-//具体用处没发现
+/* 具体用处没发现 ，当编辑器的字体格式改变时，我们让部件状态也随之改变 */
 void ChatWidgit::currentFormatChanged(const QTextCharFormat &format)
-{//当编辑器的字体格式改变时，我们让部件状态也随之改变
+{
     ui->fontComboBox->setCurrentFont(format.font());
 
-    if(format.fontPointSize()<9)  //如果字体大小出错，因为我们最小的字体为9
-        ui->fontComboBox->setCurrentIndex(3); //即显示12
+    if(format.fontPointSize() < 9)
+        ui->fontComboBox->setCurrentIndex(3);
     else ui->comboBox->setCurrentIndex(
             ui->comboBox->findText(QString::number(format.fontPointSize())));
 
@@ -280,22 +280,22 @@ void ChatWidgit::currentFormatChanged(const QTextCharFormat &format)
     color = format.foreground().color();
 }
 
-//字体大小
+/* 字体大小 */
 void ChatWidgit::on_comboBox_currentIndexChanged(QString size)
 {
     ui->teEdit->setFontPointSize(size.toDouble());
     ui->teEdit->setFocus();
 }
 
-//显示聊天记录的按键
+/* 显示聊天记录的按键 */
 void ChatWidgit::on_textHistory_clicked()
 {
     if(ui->tbHistory->isHidden())
     {
         if(!saveFile.open(QFile::ReadOnly))
         {
-            QMessageBox::warning(this,tr("保存文件"),
-                                 tr("无法保存文件 :\n %1").arg(saveFile.errorString()));
+            QMessageBox::warning(this,tr("save file"),
+                                 tr("save file :\n %1").arg(saveFile.errorString()));
             return ;
         }
 
