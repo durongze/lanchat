@@ -173,16 +173,17 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     delete imageCapture;
     delete mediaRecorder;
     delete camera;
+	QCamera *c = NULL;
 
     camera = new QCamera(cameraInfo);
+    c = camera;
+    connect(c, SIGNAL(stateChanged(QCamera::State)), this, SLOT(updateCameraState(QCamera::State)));
+    connect(c, SIGNAL(error(QCamera::Error)), this, SLOT(displayCameraError()));
 
-    connect(camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(updateCameraState(QCamera::State)));
-    connect(camera, SIGNAL(error(QCamera::Error)), this, SLOT(displayCameraError()));
-
-    mediaRecorder = new QMediaRecorder(camera);
+    mediaRecorder = new QMediaRecorder(c);
     connect(mediaRecorder, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(updateRecorderState(QMediaRecorder::State)));
 
-    imageCapture = new QCameraImageCapture(camera);
+    imageCapture = new QCameraImageCapture(c);
 
     connect(mediaRecorder, SIGNAL(durationChanged(qint64)), this, SLOT(updateRecordTime()));
     connect(mediaRecorder, SIGNAL(error(QMediaRecorder::Error)), this, SLOT(displayRecorderError()));
@@ -191,12 +192,12 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
 
     connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), SLOT(setExposureCompensation(int)));
 #if 0
-    camera->setViewfinder(ui->viewfinder);
+    c->setViewfinder(ui->viewfinder);
 #else
-    camera->setViewfinder(&m_surface);
+    c->setViewfinder(&m_surface);
 #endif
-    updateCameraState(camera->state());
-    updateLockStatus(camera->lockStatus(), QCamera::UserRequest);
+    updateCameraState(c->state());
+    updateLockStatus(c->lockStatus(), QCamera::UserRequest);
     updateRecorderState(mediaRecorder->state());
     //信号和槽的链接要注意参数部分，不能有变量名
     connect(&m_surface, SIGNAL(CaptureFrame(const QVideoFrame)), this, SLOT(sendVideo(const QVideoFrame)));
@@ -208,14 +209,14 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)), this,
             SLOT(displayCaptureError(int,QCameraImageCapture::Error,QString)));
 
-    connect(camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)),
+    connect(c, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)),
             this, SLOT(updateLockStatus(QCamera::LockStatus,QCamera::LockChangeReason)));
 
-    ui->captureWidget->setTabEnabled(0, (camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
-    ui->captureWidget->setTabEnabled(1, (camera->isCaptureModeSupported(QCamera::CaptureVideo)));
+    ui->captureWidget->setTabEnabled(0, (c->isCaptureModeSupported(QCamera::CaptureStillImage)));
+    ui->captureWidget->setTabEnabled(1, (c->isCaptureModeSupported(QCamera::CaptureVideo)));
 
     updateCaptureMode();
-    camera->start();
+    c->start();
 }
 
 void Camera::keyPressEvent(QKeyEvent * event)
