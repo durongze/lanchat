@@ -107,3 +107,32 @@ void database::Close()
     m_db.close();
     m_dbStateFlag = DATABASE_STATE_STEP_COMPLETE;
 }
+
+bool database::Check(QString& user, QString& pass, QString& msg)
+{
+	// return true;
+	if (DATABASE_STATE_STEP_COMPLETE != database::m_dbStateFlag)
+	{
+		msg = QString("database config is error\n");
+		return false;
+	}
+	if (!database::Open()) {
+		msg = QString("open database failed \n") + database::m_db.lastError().text();
+		return false;
+	}
+	QSqlQuery query;
+	query.exec("select * from user where userName='" + user + "' AND passwd='" + pass + "'");
+	if (!query.isActive()) {
+		msg = QString("log in error\n") + (query.lastError().text());
+		database::Close();
+		return false;
+	}
+	if (query.size() == 0)
+	{
+		msg = QString("user no exist\n") + (query.lastError().text());
+		database::Close();
+		return false;
+	}
+	database::Close();
+	return true;
+}

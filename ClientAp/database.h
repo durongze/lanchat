@@ -31,6 +31,7 @@ public:
     static bool Config(QString  ip = NULL,  QString userName = NULL,   QString passWord = NULL);
     static bool Open();
     static void Close();
+	static bool Check(QString& user, QString& pass, QString& msg);
 };
 
 #endif // DATABASE_H

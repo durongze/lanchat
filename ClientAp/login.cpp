@@ -26,30 +26,13 @@ Login::~Login()
 }
 
 void Login::on_btnLogin_clicked()
-{
-    if (DATABASE_STATE_STEP_COMPLETE != database::m_dbStateFlag)
-    {
-            QMessageBox::about(this,tr("error"),tr("database config is error\n"));
-            return ;
-    }
-    if(!database::Open()){
-        QMessageBox::about(this,tr("error"),tr("open database failed \n%1").arg(database::m_db.lastError().text()));
-        return ;
-    }
-    QSqlQuery query;
-    query.exec("select * from user where userName='"+ui->leUsername->text()+"' AND passwd='"+ui->lePasswd->text()+"'");
-    if(!query.isActive()){
-        QMessageBox::about(0,tr("error"),tr("log in error\n%1").arg(query.lastError().text()));
-        database::Close();
-        return ;
-    }
-    if(query.size() == 0)
-    {
-        QMessageBox::about(0,tr("error"),tr("user no exist\n%1").arg(query.lastError().text()));
-        database::Close();
-        return;
-    }
-    database::Close();
+{   
+	QString msg;
+	if (!database::Check(ui->leUsername->text(), ui->lePasswd->text(), msg))
+	{
+		QMessageBox::about(this, tr("error"), msg);
+		return;
+	}
     Widget *w = new Widget;
     w->SetName(ui->leUsername->text());
     w->show();
