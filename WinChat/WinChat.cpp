@@ -12,6 +12,8 @@
 #include "ThreadManager.h"
 
 #define MAX_LOADSTRING 100
+#define CAMERA_WIDTH 320
+#define CAMERA_HEIGHT 240
 
 // 全局变量: 
 HINSTANCE hInst;                                // 当前实例
@@ -24,6 +26,7 @@ HWND g_hRecvMsg;
 HWND g_hConnBtn;
 HWND g_hSendBtn;
 HWND g_hCamera;
+HWND g_hMainWindow;
 
 HRESULT SystemTransitionsExpectedErrors[] = {
 	DXGI_ERROR_DEVICE_REMOVED,
@@ -63,8 +66,16 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 #pragma comment(lib,"Ws2_32.lib ")
 typedef struct  {
 	long size;
-	char buf[1080 * 768];
+	char buf[CAMERA_WIDTH * CAMERA_HEIGHT * 4 + sizeof(BITMAPINFOHEADER)];
 }TcpPackage;
+
+int DrawWindowRegon(const HBITMAP& bitmap)
+{
+	RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
+	RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW);// | RDW_ERASE);
+	UpdateWindow(g_hMainWindow);
+	return 0;
+}
 
 class TcpServer
 {
@@ -77,25 +88,25 @@ public:
 	{
 		if (WSAStartup(MAKEWORD(2, 2), &wsaData))
 		{
-			return 0;
+			return -1;
 		}
 
 		/* 创建套接服务字 */
 		serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 		if (serverSocket == INVALID_SOCKET)
 		{
-			return 0;
+			return -2;
 		}
 
 		/* 设置IP地址 */
 		memset(&servAddr, 0, sizeof(servAddr));
 		servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		servAddr.sin_family = AF_INET;
-		servAddr.sin_port = htons(3000);
+		servAddr.sin_port = htons(8888);
 		/* 绑定服务器套接字 */
 		if (::bind(serverSocket, (sockaddr*)&servAddr, sizeof(sockaddr)) == SOCKET_ERROR)
 		{
-			return 0;
+			return -3;
 		}
 
 		/* 监听端口 */
@@ -103,35 +114,43 @@ public:
 		{
 			closesocket(serverSocket);
 			WSACleanup();
-			return 0;
+			return -4;
 		}
 		return 0;
 	}
 
-	static int Accept(TcpServer *svr)
+	int Accept()
 	{
 		/* 阻塞方式等待accept */
 		struct sockaddr_in cliAddr;
 		int len = sizeof(cliAddr);
 		SOCKET clientSocket;
 		while (1) {
-			clientSocket = accept(svr->serverSocket, (sockaddr*)&cliAddr, &len);
+			clientSocket = accept(serverSocket, (sockaddr*)&cliAddr, &len);
 			if (clientSocket == INVALID_SOCKET)
 			{
-				return 0;
+				Sleep(111);
 			}
-			svr->m_cli.insert(std::make_pair(clientSocket, cliAddr));
+			m_cli.insert(std::make_pair(clientSocket, cliAddr));
 		}
 		return 0;
 	}
 
 	int Send(TcpPackage& img)
 	{
+		fd_set writeSet;
+		struct timeval tm = {0,30};
 		int ret;
 		std::map<SOCKET, struct sockaddr_in>::iterator iter;
 		for (iter = m_cli.begin(); iter != m_cli.end(); ++iter)
 		{
-			inet_ntoa(iter->second.sin_addr);
+			FD_ZERO(&writeSet);
+			FD_SET(iter->first, &writeSet);
+			ret = select(iter->first + 1, NULL, &writeSet, NULL, &tm);
+			if (ret <= 0) {
+				continue;
+			}
+			// inet_ntoa(iter->second.sin_addr);
 			ret = send(iter->first, (char*)&img, sizeof(img), NULL);
 			if (ret > 0) {
 				return ret;
@@ -141,7 +160,7 @@ public:
 	}
 	int TransBitMap(const BITMAP& bm, BITMAPINFOHEADER& bi)
 	{
-		bi.biSize = { sizeof(bi) };
+		bi.biSize = sizeof(bi);
 		bi.biWidth = bm.bmWidth;
 		bi.biHeight = bm.bmHeight;
 		bi.biBitCount = bm.bmBitsPixel;
@@ -168,18 +187,33 @@ public:
 			lineEnd--;
 		}
 		delete pLineData;
+		return 0;
+	}
+
+	int TransTcpPackage(const BITMAP& bm, const BITMAPINFOHEADER& bi, TcpPackage& tp)
+	{
+		memset(&tp, 0, sizeof(TcpPackage));
+		tp.size = sizeof(BITMAPINFOHEADER) + bm.bmWidthBytes * bm.bmHeight;
+		memcpy(tp.buf, (char*)&bi, sizeof(BITMAPINFOHEADER));
+		memcpy(tp.buf + sizeof(BITMAPINFOHEADER), (char*)&bm.bmBits, sizeof(bm.bmWidthBytes * bm.bmHeight));
+		return 0;
 	}
 
 	int Send(HBITMAP& bitmap)
 	{
 		BITMAP bm;
 		BITMAPINFOHEADER bi;
-		// HBITMAP bitmap = (HBITMAP)LoadImage(NULL, TEXT("test.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		TcpPackage tp;
 		auto hcopy = (HBITMAP)CopyImage(bitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
 		GetObject(hcopy, sizeof(bm), &bm);
 		TransBitMap(bm, bi);
-		// send(sock, (BYTE*)bm.bmBits, sizeof(bi) + bi.biSizeImage, NULL)
+		TransTcpPackage(bm, bi, tp);
+		int ret = Send(tp);
+		if (ret > 0) {
+			Sleep(1);
+		}
 		DeleteObject(hcopy);
+		return ret;
 	}
 	int Uninit()
 	{
@@ -198,7 +232,10 @@ class TcpClient
 	WORD sockVersion = MAKEWORD(2, 2);
 	WSADATA wsaData;
 	SOCKET sock;
+	std::string ipAddr;
+	int port;
 public:
+	TcpClient(std::string ip = "127.0.0.1", int p = 8888):ipAddr(ip), port(p) {}
 	int Init()
 	{
 		if (WSAStartup(sockVersion, &wsaData) != 0) {
@@ -207,35 +244,64 @@ public:
 		return 0;
 	}
 
+	int SetRemoteSvr(const char* ip, int p)
+	{
+		ipAddr = ip;
+		port = p;
+		return 0;
+	}
+	int Connect(const char* ip, int p)
+	{
+		SetRemoteSvr(ip, p);
+		return Connect();
+	}
 	int Connect()
 	{
+		if (ipAddr.length() < 7 || ipAddr.length() > 15 || port == 0) {
+			return -1;
+		}
 		sockaddr_in sockAddr;
 		memset(&sockAddr, 0, sizeof(sockAddr));
 		sockAddr.sin_family = PF_INET;
-		sockAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-		sockAddr.sin_port = htons(3000);
+		sockAddr.sin_addr.s_addr = inet_addr(ipAddr.c_str());
+		sockAddr.sin_port = htons(port);
 		sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-		while (connect(sock, (SOCKADDR*)& sockAddr, sizeof(SOCKADDR)) == SOCKET_ERROR)
-		{
-			Sleep(1000);
-		}
-		return 0;
+		return connect(sock, (SOCKADDR*)& sockAddr, sizeof(SOCKADDR));
 	}
 
 	int Recv(TcpPackage& img)
 	{
-		int ret = recv(sock, (char*)&img, sizeof(img), 0);
-#if xxx
-		BYTE *buf = NULL;
-		BITMAPINFOHEADER* bi = (BITMAPINFOHEADER*)buf;
-		BYTE* bits = buf + sizeof(BITMAPINFOHEADER);
-		HBITMAP hbitmap = CreateBitmap(bi->biWidth, bi->biHeight, bi->biPlanes, bi->biBitCount, bits);
+		fd_set readSet;
+		struct timeval tm = { 0,30 };
+		int ret;
+		FD_ZERO(&readSet);
+		FD_SET(sock, &readSet);
+		ret = select(sock + 1, NULL, &readSet, NULL, &tm);
+		if (ret <= 0) {
+			return 0;
+		}
+		int msgSize = 0;
+		do {
+			ret = recv(sock, (char*)&img + msgSize, sizeof(img) - msgSize, 0);
+			if (ret < 0) {
+				return 0;
+			}
+			msgSize += ret;
+		} while (msgSize < sizeof(img));
+		return msgSize;
+	}
+	int TransBitMap(const TcpPackage& img, HBITMAP& hbitmap)
+	{
+		BITMAPINFOHEADER* bi = (BITMAPINFOHEADER*)img.buf;
+		BYTE* bits = (BYTE*)img.buf + sizeof(BITMAPINFOHEADER);
+		hbitmap = CreateBitmap(bi->biWidth, bi->biHeight, bi->biPlanes, bi->biBitCount, bits);
+#if 1
 		OpenClipboard(NULL);
 		EmptyClipboard();
 		SetClipboardData(CF_BITMAP, hbitmap);
 		CloseClipboard();
 #endif
-		return ret;
+		return 0;
 	}
 
 	int Uninit()
@@ -245,6 +311,107 @@ public:
 		return 0;
 	}
 };
+
+class TcpChat {
+	TcpChat():svr(), cli() {	}
+public:
+	static TcpChat *GetInstance() {
+		if (tc == NULL) { tc = new TcpChat; }
+		return tc;
+	}	
+	static int SetRemoteSvr(std::string ip = "127.0.0.1", int port = 8888) 
+	{
+		return tc->cli.SetRemoteSvr(ip.c_str(), port);
+	}
+	static int ConnectRemoteSvr(DWORD *arg) 
+	{
+		TcpChat* tc = (TcpChat*)arg;
+		return tc->cli.Connect();
+	}
+    int Init()
+	{
+		svr.Init();
+		cli.Init();
+		return 0;
+	}
+	static int Accept(DWORD *arg)
+	{
+		TcpChat* tc = (TcpChat*)arg;
+		return tc->svr.Accept();
+	}
+	HBITMAP ReadImage(wchar_t *path)
+	{
+		return (HBITMAP)LoadImage(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	}
+
+	static int SendImage(DWORD *arg)
+	{
+		int ret;
+		HBITMAP bitmap;
+		TcpChat* tc = (TcpChat*)arg;
+		// bitmap = tc->ReadImage(TEXT(""));
+		RECT rctA; // 定义一个RECT结构体，存储窗口的长宽高
+		HWND cam = g_hCamera;
+		::GetWindowRect(cam, &rctA); // 通过窗口句柄获得窗口的大小存储在rctA结构中
+		int nWidth = rctA.right - rctA.left; // GetSystemMetrics(SM_CXSCREEN); // 得到屏幕的分辨率的x    
+		int nHeight = rctA.bottom - rctA.top; // GetSystemMetrics(SM_CYSCREEN); // 得到屏幕分辨率的y    
+		POINT mouse;
+		while (1) {
+			GetCursorPos(&mouse);
+			HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
+			HDC hdcCopy = CreateCompatibleDC(hdcDesk); //  
+			HBITMAP hBitmap = CreateCompatibleBitmap(hdcDesk, nWidth, nHeight); // 得到位图    
+			HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。             
+			BitBlt(hdcCopy, 0, 0, nWidth, nHeight, hdcDesk,  mouse.x, mouse.y, SRCCOPY);
+			ret = tc->svr.Send(hBitmap);
+			if (ret > 0) {
+				Sleep(1);
+#if 0
+				OpenClipboard(NULL);
+				EmptyClipboard();
+				SetClipboardData(CF_BITMAP, hBitmap);
+				CloseClipboard();
+#endif
+			}
+			DeleteObject(hObj);
+			DeleteDC(hdcDesk);
+			Sleep(111);
+		}
+	}
+	static int RecvImage(DWORD *arg)
+	{
+		int ret;
+		TcpPackage tp;
+		HBITMAP bitmap;
+		TcpChat* tc = (TcpChat*)arg;
+		while (1) {
+			ret = tc->cli.Recv(tp);
+			if (ret > 0) {
+				tc->cli.TransBitMap(tp, bitmap);
+				DrawWindowRegon(bitmap);
+			}
+			Sleep(111);
+		}
+		return ret;
+	}
+
+	static int SendIext(DWORD *arg)
+	{
+		TcpPackage *tp = (TcpPackage *)arg;
+		return TcpChat::GetInstance()->svr.Send(*tp);
+	}
+	static int RecvText(DWORD *arg)
+	{
+		TcpPackage *tp = (TcpPackage *)arg;
+		return TcpChat::GetInstance()->cli.Recv(*tp);
+	}
+private:
+	TcpServer svr;
+	TcpClient cli;
+public:
+	static TcpChat *tc;
+};
+TcpChat *TcpChat::tc = NULL;
 //
 // Entry point for new duplication threads
 //
@@ -535,7 +702,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WINCHAT));
-
+	DWORD  threadId;
+	TcpChat *tc = TcpChat::GetInstance();
+	tc->Init();
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->Accept, tc, 0, &threadId);
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->SendImage, tc, 0, &threadId);
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->RecvImage, tc, 0, &threadId);
     MSG msg;
 
     // 主消息循环: 
@@ -603,6 +775,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
+   g_hMainWindow = hWnd;
 
    return TRUE;
 }
@@ -610,9 +783,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId = LOWORD(wParam);
+	DWORD threadId;
+	TcpChat *tc = TcpChat::GetInstance();
 	// 分析菜单选择: 
 	switch (wmId)
 	{
+	case IDC_CONNECT:
+		tc->SetRemoteSvr("127.0.0.1", 8888);
+		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->ConnectRemoteSvr, tc, 0, &threadId);
+		break;
 	case IDM_ABOUT:
 		DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 		break;
@@ -687,7 +866,7 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hWnd, (HMENU)IDC_SEND, hInst, NULL);
 	g_hCamera = CreateWindow(TEXT("static"), TEXT("视频:"),
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
-		710, 70, 320, 240,
+		710, 70, CAMERA_WIDTH, CAMERA_HEIGHT,
 		hWnd, (HMENU)IDC_CAMERA, hInst, NULL);
 	return 0;
 }
