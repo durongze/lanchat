@@ -21,7 +21,7 @@
 		memset(&servAddr, 0, sizeof(servAddr));
 		servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		servAddr.sin_family = AF_INET;
-		servAddr.sin_port = htons(8888);
+		servAddr.sin_port = htons(3000);
 		/* 绑定服务器套接字 */
 		if (::bind(serverSocket, (sockaddr*)&servAddr, sizeof(sockaddr)) == SOCKET_ERROR)
 		{

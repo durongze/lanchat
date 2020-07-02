@@ -62,6 +62,26 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+char * wchar2char(const wchar_t* wchar)
+{
+	char * m_char;
+	int len = WideCharToMultiByte(CP_ACP, 0, wchar, wcslen(wchar), NULL, 0, NULL, NULL);
+	m_char = new char[len + 1];
+	WideCharToMultiByte(CP_ACP, 0, wchar, wcslen(wchar), m_char, len, NULL, NULL);
+	m_char[len] = '\0';
+	return m_char;
+}
+
+wchar_t * char2wchar(const char* cchar)
+{
+	wchar_t *m_wchar;
+	int len = MultiByteToWideChar(CP_ACP, 0, cchar, strlen(cchar), NULL, 0);
+	m_wchar = new wchar_t[len + 1];
+	MultiByteToWideChar(CP_ACP, 0, cchar, strlen(cchar), m_wchar, len);
+	m_wchar[len] = '\0';
+	return m_wchar;
+}
+
 int DrawWindowRegon()
 {
 	RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
@@ -443,11 +463,21 @@ int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int wmId = LOWORD(wParam);
 	DWORD threadId;
 	TcpChat *tc = TcpChat::GetInstance();
+	wchar_t ipAddr[32] = { 0 };
+	wchar_t port[32] = { 0 };
+	char *pIp = NULL;
+	char *pPort = NULL;
 	// 分析菜单选择: 
 	switch (wmId)
 	{
 	case IDC_CONNECT:
-		tc->SetRemoteSvr("127.0.0.1", 8888);
+		GetWindowText(g_hIpAddr, ipAddr, sizeof(ipAddr));
+		GetWindowText(g_hPort, port, sizeof(port));
+		pIp = wchar2char(ipAddr);
+		pPort = wchar2char(port);
+		tc->SetRemoteSvr(pIp, atoi(pPort));
+		delete[] pIp;
+		delete[] pPort;
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->ConnectRemoteSvr, tc, 0, &threadId);
 		break;
 	case IDM_ABOUT:
