@@ -157,6 +157,7 @@
     <ClInclude Include="TcpChatX.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="VertexShader.h" />
+    <ClInclude Include="WaveApi.h" />
     <ClInclude Include="WinChat.h" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +172,7 @@
     </ClCompile>
     <ClCompile Include="TcpChatX.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
+    <ClCompile Include="WaveApi.cpp" />
     <ClCompile Include="WinChat.cpp" />
   </ItemGroup>
   <ItemGroup>
