@@ -26,7 +26,7 @@ public:
 
 	int Accept();
 
-	int Send(TcpPackage& img);
+	int Send(const TcpPackage& img);
 
 	int TransBitMap(const BITMAP& bm, BITMAPINFOHEADER& bi);
 

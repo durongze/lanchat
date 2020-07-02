@@ -55,7 +55,7 @@
 		return 0;
 	}
 
-	int TcpServer::Send(TcpPackage& img)
+	int TcpServer::Send(const TcpPackage& img)
 	{
 		fd_set writeSet;
 		struct timeval tm = { 0,30 };
@@ -268,11 +268,11 @@
 		while (1) {
 			GetCursorPos(&mouse);
 			HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
-			HDC hdcCopy = CreateCompatibleDC(hdcDesk); //  
-			HBITMAP hBitmap = CreateCompatibleBitmap(hdcDesk, nWidth, nHeight); // 得到位图    
+			HDC hdcCopy = CreateCompatibleDC(hdcDesk); //  GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)
+			HBITMAP hBitmap = CreateCompatibleBitmap(hdcDesk, nWidth, nHeight); // 得到位图, 这3个参数必须这样传好像。  
 			HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。   
-			BitBlt(hdcCopy, 0, 0, nWidth, nHeight, hdcDesk, mouse.x, mouse.y, SRCCOPY);
-			auto hcopy = (HBITMAP)CopyImage(hBitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+			bool bRet = BitBlt(hdcCopy, 0, 0, nWidth, nHeight, hdcDesk, mouse.x, mouse.y, SRCCOPY);
+			auto hcopy = (HBITMAP)CopyImage(hBitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION); //以上代码是正确的，因为hBitmap对了
 			GetObject(hcopy, sizeof(bm), &bm);
 			ret = tc->svr.Send(bm);
 			if (ret > 0) {
@@ -280,7 +280,7 @@
 #if 1
 				OpenClipboard(NULL);
 				EmptyClipboard();
-				SetClipboardData(CF_BITMAP, hcopy);
+				SetClipboardData(CF_BITMAP, hBitmap);
 				CloseClipboard();
 #endif
 			}
