@@ -176,8 +176,11 @@
 		sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 		return connect(sock, (SOCKADDR*)& sockAddr, sizeof(SOCKADDR));
 	}
-
-	int TcpClient::TcpClient::Recv(TcpPackage& img)
+	int TcpClient::DisConnect()
+	{
+		return closesocket(sock);
+	}
+	int TcpClient::Recv(TcpPackage& img)
 	{
 		fd_set readSet;
 		struct timeval tm = { 0,30 };
@@ -233,6 +236,11 @@
 	{
 		TcpChat* tc = (TcpChat*)arg;
 		return tc->cli.Connect();
+	}
+	int TcpChat::DisConnectRemoteSvr(DWORD *arg)
+	{
+		TcpChat* tc = (TcpChat*)arg;
+		return tc->cli.DisConnect();
 	}
 	int TcpChat::Init(FuncDrawWin drawWin)
 	{
@@ -293,7 +301,7 @@
 					EmptyClipboard();
 					SetClipboardData(CF_BITMAP, bitmap);
 					CloseClipboard();
-					tc->funcDrawWin();
+					tc->funcDrawWin(NULL);
 				}
 			}
 			Sleep(111);
@@ -309,14 +317,14 @@
 	{
 		return tc->cli.TransBitMap(*tc->img, hbitmap);
 	}
-	int TcpChat::SendIext(DWORD *arg)
+	int TcpChat::SendText(TcpPackage& tp)
 	{
-		TcpPackage *tp = (TcpPackage *)arg;
-		return TcpChat::GetInstance()->svr.Send(*tp);
+		return TcpChat::GetInstance()->svr.Send(tp);
 	}
-	int TcpChat::RecvText(DWORD *arg)
+	int TcpChat::RecvText(TcpPackage& tp)
 	{
-		TcpPackage *tp = (TcpPackage *)arg;
-		return TcpChat::GetInstance()->cli.Recv(*tp);
+		int ret = TcpChat::GetInstance()->cli.Recv(tp);
+		tc->funcDrawWin(&tp);
+		return ret;
 	}
 

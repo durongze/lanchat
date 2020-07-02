@@ -26,6 +26,7 @@ HWND g_hConnBtn;
 HWND g_hSendBtn;
 HWND g_hCamera;
 HWND g_hMainWindow;
+wchar_t g_MsgBrowser[2048] = {0};
 
 HRESULT SystemTransitionsExpectedErrors[] = {
 	DXGI_ERROR_DEVICE_REMOVED,
@@ -82,11 +83,29 @@ wchar_t * char2wchar(const char* cchar)
 	return m_wchar;
 }
 
-int DrawWindowRegon()
+int AppendToMsgBrowser(const TcpPackage& tp)
 {
-	RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
-	RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW);// | RDW_ERASE);
-	UpdateWindow(g_hMainWindow);
+
+	GetWindowText(g_hRecvMsg, g_MsgBrowser, sizeof(g_MsgBrowser));
+	int msgLen = lstrlen(g_MsgBrowser);
+	if (msgLen > sizeof(g_MsgBrowser) / 3) {
+		memmove(g_MsgBrowser, g_MsgBrowser + msgLen / 2, msgLen / 2);
+	}
+	msgLen = lstrlen(g_MsgBrowser);
+	memcpy(g_MsgBrowser + msgLen, tp.buf, strlen(tp.buf));
+	SetWindowText(g_hRecvMsg, g_MsgBrowser);
+	return 0;
+}
+
+int DrawWindowRegon(TcpPackage *tp)
+{
+	if (tp == NULL) {
+		RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
+		RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW);// | RDW_ERASE);
+		UpdateWindow(g_hMainWindow);
+	} else {
+		AppendToMsgBrowser(*tp);
+	}
 	return 0;
 }
 
@@ -458,19 +477,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+int HandleCmdConnect()
 {
-	int wmId = LOWORD(wParam);
 	DWORD threadId;
 	TcpChat *tc = TcpChat::GetInstance();
-	wchar_t ipAddr[32] = { 0 };
-	wchar_t port[32] = { 0 };
-	char *pIp = NULL;
-	char *pPort = NULL;
-	// 分析菜单选择: 
-	switch (wmId)
-	{
-	case IDC_CONNECT:
+	static bool IsConnected = false;
+	if (IsConnected) {
+		SetWindowText(g_hConnBtn, TEXT("连接"));
+		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->DisConnectRemoteSvr, tc, 0, &threadId);
+		IsConnected = false;
+	} else {
+		SetWindowText(g_hConnBtn, TEXT("断开"));
+		wchar_t ipAddr[32] = { 0 };
+		wchar_t port[32] = { 0 };
+		char *pIp = NULL;
+		char *pPort = NULL;
 		GetWindowText(g_hIpAddr, ipAddr, sizeof(ipAddr));
 		GetWindowText(g_hPort, port, sizeof(port));
 		pIp = wchar2char(ipAddr);
@@ -479,6 +500,31 @@ int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		delete[] pIp;
 		delete[] pPort;
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->ConnectRemoteSvr, tc, 0, &threadId);
+		IsConnected = true;
+	}
+	return 0;
+}
+
+int HandleCmdSend()
+{
+	TcpPackage msg = { 0 };
+	GetWindowText(g_hSendMsg, (wchar_t*)msg.buf, sizeof(msg.buf));
+	int ret = TcpChat::GetInstance()->SendText(msg);
+	if (ret > 0) AppendToMsgBrowser(msg);
+	return 0;
+}
+int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	int wmId = LOWORD(wParam);
+
+	// 分析菜单选择: 
+	switch (wmId)
+	{
+	case IDC_CONNECT:
+		HandleCmdConnect();
+		break;
+	case IDC_SEND:
+		HandleCmdSend();
 		break;
 	case IDM_ABOUT:
 		DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
@@ -570,6 +616,15 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
 		710, 70, CAMERA_WIDTH, CAMERA_HEIGHT,
 		hWnd, (HMENU)IDC_CAMERA, hInst, NULL);
+	
+	SetWindowText(g_hIpAddr, TEXT("127.0.0.1"));
+	SetWindowText(g_hPort, TEXT("3000"));
+
+	wchar_t user[MAX_PATH] = {0};
+	DWORD userLen = sizeof(user);
+	GetUserName(user, &userLen);
+	SetWindowText(g_hSendMsg, user);
+
 	return 0;
 }
 //

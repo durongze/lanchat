@@ -13,7 +13,7 @@ typedef struct {
 	char buf[CAMERA_WIDTH * CAMERA_HEIGHT * 4 + sizeof(BITMAPINFOHEADER)];
 }TcpPackage;
 
-typedef int (*FuncDrawWin)();
+typedef int (*FuncDrawWin)(TcpPackage* tp);
 
 class TcpServer
 {
@@ -44,15 +44,13 @@ class TcpClient
 	SOCKET sock;
 	std::string ipAddr;
 	int port;
-
 public:
 	TcpClient(std::string ip = "127.0.0.1", int p = 8888);
 	int Init();
-
 	int SetRemoteSvr(const char* ip, int p);
 	int Connect(const char* ip, int p);
 	int Connect();
-
+	int DisConnect();
 	int Recv(TcpPackage& img);
 	int TransBitMap(const TcpPackage& img, HBITMAP& hbitmap);
 	int Uninit();
@@ -65,6 +63,7 @@ public:
 	static TcpChat *GetInstance();
 	static int SetRemoteSvr(std::string ip = "127.0.0.1", int port = 8888);
 	static int ConnectRemoteSvr(DWORD *arg);
+	static int DisConnectRemoteSvr(DWORD *arg);
 	int Init(FuncDrawWin drawWin);
 	static int Accept(DWORD *arg);
 	HBITMAP ReadImage(wchar_t *path);
@@ -72,8 +71,8 @@ public:
 	static int SendImage(DWORD *arg);
 	static int RecvImage(DWORD *arg);
 	static int TransBitMap(HBITMAP& hbitmap);
-	static int SendIext(DWORD *arg);
-	static int RecvText(DWORD *arg);
+	static int SendText(TcpPackage& arg);
+	static int RecvText(TcpPackage& arg);
 	int SetFuncDrawWin(FuncDrawWin drawWin);
 private:
 	TcpServer svr;
