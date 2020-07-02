@@ -101,7 +101,7 @@ int DrawWindowRegon(TcpPackage *tp)
 {
 	if (tp == NULL) {
 		RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
-		RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW);// | RDW_ERASE);
+		RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
 	} else {
 		AppendToMsgBrowser(*tp);
@@ -649,6 +649,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 	case WM_CREATE:
 		HandleCreateMsg(hWnd, message, wParam, lParam);
+		break;
+	case WM_ERASEBKGND:
 		break;
     case WM_DESTROY:
         PostQuitMessage(0);
