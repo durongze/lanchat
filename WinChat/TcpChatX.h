@@ -5,8 +5,8 @@
 #include <winsock.h>
 #include <map>
 
-#define CAMERA_WIDTH 320
-#define CAMERA_HEIGHT 240
+#define CAMERA_WIDTH 128
+#define CAMERA_HEIGHT 128
 
 typedef struct {
 	long size;

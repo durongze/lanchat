@@ -113,8 +113,11 @@
 	{
 		memset(&tp, 0, sizeof(TcpPackage));
 		tp.size = sizeof(BITMAPINFOHEADER) + bm.bmWidthBytes * bm.bmHeight;
+		if (sizeof(tp.buf) < sizeof(bi) + bm.bmWidthBytes * bm.bmHeight) {
+			return -1;
+		}
 		memcpy(tp.buf, (char*)&bi, sizeof(BITMAPINFOHEADER));
-		memcpy(tp.buf + sizeof(BITMAPINFOHEADER), (char*)&bm.bmBits, sizeof(bm.bmWidthBytes * bm.bmHeight));
+		memcpy(tp.buf + sizeof(BITMAPINFOHEADER), (char*)bm.bmBits, bm.bmWidthBytes * bm.bmHeight);
 		return 0;
 	}
 
@@ -125,15 +128,6 @@
 		TransBitMap(bm, bi);
 		TransTcpPackage(bm, bi, tp);
 		int ret = Send(tp);
-		if (ret > 0) {
-			TcpClient c;
-			HBITMAP hBitmap;
-			c.TransBitMap(tp, hBitmap);
-			OpenClipboard(NULL);
-			EmptyClipboard();
-			SetClipboardData(CF_BITMAP, hBitmap);
-			CloseClipboard();
-		}
 		return ret;
 	}
 	int TcpServer::Uninit()
@@ -277,12 +271,6 @@
 			ret = tc->svr.Send(bm);
 			if (ret > 0) {
 				Sleep(1);
-#if 1
-				OpenClipboard(NULL);
-				EmptyClipboard();
-				SetClipboardData(CF_BITMAP, hBitmap);
-				CloseClipboard();
-#endif
 			}
 			DeleteObject(hObj);
 			DeleteDC(hdcDesk);
@@ -299,10 +287,13 @@
 			ret = tc->cli.Recv(tp);
 			if (ret > 0) {
 				*(tc->img) = tp;
-				// tc->cli.TransBitMap(tp, bitmap);
-				
+				tc->cli.TransBitMap(tp, bitmap);
 				if (tc->funcDrawWin) {
-					// tc->funcDrawWin();
+					OpenClipboard(NULL);
+					EmptyClipboard();
+					SetClipboardData(CF_BITMAP, bitmap);
+					CloseClipboard();
+					tc->funcDrawWin();
 				}
 			}
 			Sleep(111);

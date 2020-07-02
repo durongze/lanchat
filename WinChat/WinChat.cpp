@@ -473,18 +473,15 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HDC hdc = BeginPaint(hWnd, &ps);
 	HDC hdcCamera = BeginPaint(g_hCamera, &psCamera);
 #if 1
-	if (0)
-	{
-		HBITMAP hBitmap;
-		TcpChat::GetInstance()->TransBitMap(hBitmap);
-		HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
-		HDC hdcCopy = CreateCompatibleDC(hdcDesk); //  
-		HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
-		BitBlt(hdcCamera, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
-		DeleteObject(hObj);
-		DeleteDC(hdcCopy);
-		DeleteDC(hdcDesk);
-    }
+	HBITMAP hBitmap;
+	TcpChat::GetInstance()->TransBitMap(hBitmap);
+	HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
+	HDC hdcCopy = CreateCompatibleDC(hdcDesk); //  
+	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
+	BitBlt(hdcCamera, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
+	DeleteObject(hObj);
+	DeleteDC(hdcCopy);
+	DeleteDC(hdcDesk);
 #else
 	// TODO: 在此处添加使用 hdc 的任何绘图代码...
 	int nWidth = GetSystemMetrics(SM_CXSCREEN); // 得到屏幕的分辨率的x    
