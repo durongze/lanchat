@@ -132,8 +132,7 @@ private:
     (3)重载基类的boolstart(constQVideoSurfaceFormat&format)函数，用于启动视频表面及进行相应的窗口设置;
     (4)重载基类的voidstop()函数，用于停止当前的视频表面和释放调用start时所产生的资源.
     (5)添加voidpaint(QPainter*painter)函数,用以绘制视频图像,以在本地窗口中输出.
-        其次,新建一个QCamera对象m_pCamera,
-                   新建一个VideoWidgetSurface对象m_pVideoSurface;
+        其次,新建一个QCamera对象m_pCamera,新建一个VideoWidgetSurface对象m_pVideoSurface;
         通过m_pCamera->service()->requestControl<QVideoRendererControl*>()方法获取QVideoRendererControl的指针pControl,
         如果该指针存在,则调用pControl的setSurface关联到m_pVideoSurface,
         这样当m_pCamera执行完Start()后,就可以在m_pVideoSuface对象的present函数中得到每一帧的QVideoFrame视频数据.

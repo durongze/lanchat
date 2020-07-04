@@ -110,7 +110,7 @@ void database::Close()
 
 bool database::Check(QString& user, QString& pass, QString& msg)
 {
-	// return true;
+	return true;
 	if (DATABASE_STATE_STEP_COMPLETE != database::m_dbStateFlag)
 	{
 		msg = QString("database config is error\n");

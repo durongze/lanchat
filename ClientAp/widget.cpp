@@ -17,36 +17,32 @@
 #include <QMenu>
 
 /* 初始化函数  文件传输只有这里一个变量 所以直接连接信号与槽 */
-Widget::Widget(QWidget *parent) :
-        QWidget(parent),
-        ui(new Ui::Widget)
+Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
-    this->resize(300,650);
-    this->move(1000,50);
+    this->resize(300, 650);
+    this->move(1000, 50);
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-
     Sender = new FileSender(this);
     udpSocket = new QUdpSocket(this);
     port = 45454;
-    udpSocket->bind(port,QUdpSocket::ShareAddress
-                    | QUdpSocket::ReuseAddressHint);
+    udpSocket->bind(port, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
     connect(udpSocket,SIGNAL(readyRead()),this,SLOT(processPendingDatagrams()));
     connect(Sender,SIGNAL(sendFileName(QString,QString)),this,SLOT(sentFileName(QString,QString)));
-/* 建立系统托盘图标 */
-       setMinimumSize(200,100);
-       QIcon icon;
-	   icon.addFile(QString(":/new/prefix1/image/tray.svg"), QSize(), QIcon::Normal, QIcon::On);
-       setWindowIcon(icon);
-       trayIcon = new QSystemTrayIcon(this);
-       trayIcon->setIcon(icon);
-       trayIcon->setToolTip("a trayicon example");
-       createActions();
-       createTrayIcon();
-       trayIcon->show();
-       setWindowTitle(tr("Systray"));
-       connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
-       //connect(button, SIGNAL(clicked()), this, SLOT(showMessage()));
+	/* 建立系统托盘图标 */
+    setMinimumSize(200,100);
+    QIcon icon;
+	icon.addFile(QString(":/new/prefix1/image/tray.svg"), QSize(), QIcon::Normal, QIcon::On);
+    setWindowIcon(icon);
+    trayIcon = new QSystemTrayIcon(this);
+    trayIcon->setIcon(icon);
+    trayIcon->setToolTip("a trayicon example");
+    createActions();
+    createTrayIcon();
+    trayIcon->show();
+    setWindowTitle(tr("Systray"));
+    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+    // connect(button, SIGNAL(clicked()), this, SLOT(showMessage()));
 }
 
 /* 公有函数  在登录成功后调用  设置昵称  并广播加入网络 */
@@ -59,7 +55,7 @@ void Widget::SetName(QString name)
 void Widget::processPendingDatagramsStartChat(QDataStream& in)
 {
     QString localHostName, ipAddress, secretAddress;
-    in  >>localHostName >>ipAddress >> secretAddress;
+    in  >> localHostName >> ipAddress >> secretAddress;
     if(secretAddress == getIP())
     {
         ChatWidgit *chatView = new ChatWidgit();
@@ -78,12 +74,11 @@ void Widget::processPendingDatagramsAskStartChat(QDataStream& in)
     int btn;
     QString prompt;
     QString localHostName, ipAddress, secretAddress;
-    in  >> localHostName >>ipAddress >> secretAddress;
+    in  >> localHostName >> ipAddress >> secretAddress;
     if (secretAddress == getIP()) {
         prompt = tr("from %1 %2 ,receive (Yes/No)?").arg(ipAddress).arg(localHostName);
         btn = QMessageBox::information(this,tr("agree chat"), prompt, QMessageBox::Yes,QMessageBox::No);
-        if(btn == QMessageBox::Yes)
-        {
+        if (btn == QMessageBox::Yes) {
             ChatWidgit *chatView = new ChatWidgit();
             list.insert(ipAddress,chatView);
             connect(chatView,SIGNAL(closeChat(QString)),this,SLOT(closeFromChat(QString)));
@@ -93,8 +88,7 @@ void Widget::processPendingDatagramsAskStartChat(QDataStream& in)
             chatView->setSecAddr(ipAddress,Name);
             chatView->show();
             sendMessage(StartChat,ipAddress);
-        }else if(btn == QMessageBox::No)
-        {
+        } else if(btn == QMessageBox::No) {
             sendMessage(RefuseChat,ipAddress);
         }
     }
@@ -107,7 +101,7 @@ void Widget::processPendingDatagramsMessage(QDataStream& in)
 {
     QString time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     QString localHostName, ipAddress, message, secretAddress, sex;
-    in  >>localHostName >>ipAddress >> secretAddress >>message;
+    in  >> localHostName >> ipAddress >> secretAddress >> message;
     // QMessageBox::information(this,tr("0"),tr("%1sec\n%2").arg(secretAddress).arg(ipAddress));
     if(secretAddress == getIP() )
     {
@@ -229,8 +223,7 @@ void Widget::processPendingDatagrams()
 
 
 /* 接收方有文件需要接收，选择同意后拒绝  并打开接收窗口 连接发送方 */
-void Widget::hasPendingCamera(QString localHostName, QString serverAddress,
-                            QString clientAddress,QString cameraName)
+void Widget::hasPendingCamera(QString localHostName, QString serverAddress, QString clientAddress,QString cameraName)
 {
     int btn;
     QString prompt;

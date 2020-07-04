@@ -40,8 +40,6 @@ public:
     ~Widget();
     QString getUserName();
     void SetName(QString);
-
-
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *);

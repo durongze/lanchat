@@ -123,51 +123,37 @@ void Camera::delCamera()
 /* 发送视频到远端 */
 bool Camera::sendVideo(const QVideoFrame &frame)
 {
-
     Q_UNUSED(frame);
-    if (frame.isValid()) {
-        QVideoFrame cloneFrame(frame);
-        cloneFrame.map(QAbstractVideoBuffer::ReadOnly);
-        const QImage image(cloneFrame.bits(),
-                           cloneFrame.width(),
-                           cloneFrame.height(),
-                          QVideoFrame::imageFormatFromPixelFormat(cloneFrame .pixelFormat()));
+	if (!frame.isValid()) {
+		return false;
+	}
+    QVideoFrame cloneFrame(frame);
+    cloneFrame.map(QAbstractVideoBuffer::ReadOnly);
+	const QImage::Format& format = QVideoFrame::imageFormatFromPixelFormat(cloneFrame.pixelFormat());
+    QImage image(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), format);
+    ui->label->setPixmap(QPixmap::fromImage(image));
+    qDebug()<<cloneFrame.mappedBytes();
+    cloneFrame.unmap();
+	QByteArray buffer;
+	bool ret = image.loadFromData(buffer, "png");
 
-        ui->label->setPixmap(QPixmap::fromImage(image));
-        qDebug()<<cloneFrame.mappedBytes();
-        cloneFrame.unmap();
-    }
-    return true;
-    /*
-4. 图像缩放
-图像缩放采用scaled函数。函数原型
-QImage QImage::scaled ( const QSize & size,
-                Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio,
-                Qt::TransformationModetransformMode = Qt::FastTransformation ) const
-使用方法如下，还是利用上面的img：
-QImage* imgScaled = new QImage；
-*imgScaled=img->scaled(width, height, Qt::KeepAspectRatio);
-ui->label->setPixmap(QPixmap::fromImage(*imgScaled));
-scaled函数中width和height表示缩放后图像的宽和高，即将原图像缩放到(width,height)大小。
-5. 图像旋转
-图像旋转可以利用QImage类的transformed函数，向transformed函数传入QMatrix对象，QMatrix对象指定了旋转的角度。
-代码如下：
-QImage* imgRatate = new QImage;
-QMatrix matrix;
-matrix.rotate(270);
-*imgRotate = img->transformed(matrix);
-ui->label->setPixmap(QPixmap::fromImage(*imgRotate));
-注意：rotate函数中参数是旋转的角度，旋转是按顺时针方向旋转的，上面顺时针旋转270度，即逆时针旋转90度。
-6. 图像连续缩放
-有了图像缩放的基础，就可以实现图像的连续缩放，可以放置一个横向滑竿(中文解释不标准，就是Horizontal Slider部件 )，
-滑动滑轮的位置以实现图像连续缩放。
-Horizontal Slider部件指向的值为整型value，即缩放后的图像为
-img->scaled(orignalWidth*value/100, orignalHeight*value/100, Qt::KeepAspectRatio);
-orignalWidth和orignalHeight为原始图像的宽和高。
-注意：在对原始图像进行缩放多少倍数时，在相应的槽函数内只需要调用Horizontal Slider部件对象的setValue函数即可，
-因为Horizontal Slider部件滑竿指向的值一旦变化就会触发对应的槽函数来对图像进行缩放。
-    */
+	return true;
+    /*4. 图像缩放采用scaled函数。scaled函数中width和height表示缩放后图像的宽和高，即将原图像缩放到(width,height)大小。*/
+	QImage* imgScaled = new QImage;
+    *imgScaled = image.scaled(ui->label->width, ui->label->height, Qt::KeepAspectRatio);
+    ui->label->setPixmap(QPixmap::fromImage(*imgScaled));
+    /*5. 图像顺时针旋转利用QImage类的transformed函数，向transformed函数传入QMatrix对象，QMatrix对象指定了旋转的角度。*/
+	QImage* imgRotate = new QImage;
+	QMatrix matrix;
+	matrix.rotate(270);
+	*imgRotate = image.transformed(matrix);
+	ui->label->setPixmap(QPixmap::fromImage(*imgRotate));
+    /*6. 图像连续缩放可以利用Horizontal Slider，该部件指向的值为整型value。*/
+	int value = 40;
+	image.scaled(ui->label->width * value / 100, ui->label->height * value / 100, Qt::KeepAspectRatio);
+	return true;
 }
+
 void Camera::setCamera(const QCameraInfo &cameraInfo)
 {
     delete imageCapture;
