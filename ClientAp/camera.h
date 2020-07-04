@@ -109,15 +109,17 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
     void closeEvent(QCloseEvent *event);
-
+private:
+	int InitRecorder();
+	int UnInitRecorder();
 private:
     Ui::Camera *ui;
     /* QVideoWidget搭配使用用来显示摄像机视频 */
-    QCamera *camera;
+    QCamera *m_camera;
     /* QCameraimageCapture可以抓拍摄像机图像 */
-    QCameraImageCapture *imageCapture;
+    QCameraImageCapture *m_imageCapture;
     /* QMediaRecoder可以保存摄像机视频 */
-    QMediaRecorder* mediaRecorder;
+    QMediaRecorder* m_mediaRecorder;
 
     QImageEncoderSettings imageSettings;
     QAudioEncoderSettings audioSettings;
@@ -128,16 +130,15 @@ private:
 
     /* QVideoFrame 继承了QAbstractVideoSurface:
     (1)重载虚基函数QList<QVideoFrame::PixelFormat>supportedPixelFormats(QAbstractVideoBuffer::HandleTypehandleType=QAbstractVideoBuffer::NoHandle)const;用于设置程序支持的原始视频格式;
-    (2)重载基类的boolpresent(constQVideoFrame&frame)函数，用于获取当前帧的视频源数据;
-    (3)重载基类的boolstart(constQVideoSurfaceFormat&format)函数，用于启动视频表面及进行相应的窗口设置;
-    (4)重载基类的voidstop()函数，用于停止当前的视频表面和释放调用start时所产生的资源.
-    (5)添加voidpaint(QPainter*painter)函数,用以绘制视频图像,以在本地窗口中输出.
-        其次,新建一个QCamera对象m_pCamera,新建一个VideoWidgetSurface对象m_pVideoSurface;
-        通过m_pCamera->service()->requestControl<QVideoRendererControl*>()方法获取QVideoRendererControl的指针pControl,
-        如果该指针存在,则调用pControl的setSurface关联到m_pVideoSurface,
+    (2)重载基类的bool present(constQVideoFrame&frame) 函数，用于获取当前帧的视频源数据;
+    (3)重载基类的bool start(constQVideoSurfaceFormat&format) 函数，用于启动视频表面及进行相应的窗口设置;
+    (4)重载基类的void stop() 函数，用于停止当前的视频表面和释放调用start时所产生的资源.
+    (5)添加void paint(QPainter*painter) 函数,用以绘制视频图像,以在本地窗口中输出.
+        其次, 新建一个QCamera对象m_pCamera, 新建一个VideoWidgetSurface对象m_pVideoSurface;
+        通过 m_pCamera->service()->requestControl<QVideoRendererControl*>() 方法获取 QVideoRendererControl 的指针pControl,
+        如果该指针存在,则调用pControl 的 setSurface 关联到 m_pVideoSurface,
         这样当m_pCamera执行完Start()后,就可以在m_pVideoSuface对象的present函数中得到每一帧的QVideoFrame视频数据.
         在测试程序中获取的视频数据格式为RGB32,需要先转为YUV240P的格式,然后再用FFmpeg的H.264编码功能实现视频数据编码.*/
-
     VideoWidgetSurface m_surface;
     QVideoSurfaceFormat  m_format;
     static Camera* instanceCamera;
