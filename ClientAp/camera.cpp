@@ -69,18 +69,11 @@ Camera::Camera(QWidget *parent) : QMainWindow(parent), ui(new Ui::Camera), m_cam
 
     // The QCameraInfo class provides general information about camera devices.
     foreach (const QCameraInfo &cameraInfo, QCameraInfo::availableCameras()) {
-
-        // The QAction class provides an abstract user interface action that can be inserted into widgets.
         QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
-
         videoDeviceAction->setCheckable(true);
-
-        // The QVariant class acts like a union for the most common Qt data types.
         videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
-
         if (cameraInfo == QCameraInfo::defaultCamera())
             videoDeviceAction->setChecked(true);
-
         ui->menuDevices->addAction(videoDeviceAction);
     }
 
@@ -164,51 +157,64 @@ bool Camera::sendVideo(const QVideoFrame &frame)
 	return true;
 }
 
+void Camera::setCameraSurface(VideoWidgetSurface*& videoSurface)
+{
+	// 信号和槽的链接要注意参数部分，不能有变量名
+	connect(videoSurface, SIGNAL(CaptureFrame(const QVideoFrame)), this, SLOT(sendVideo(const QVideoFrame)));
+	m_camera->setViewfinder(videoSurface);
+	m_surface = videoSurface;
+}
+
+void Camera::setCameraAndImageCapture(QCameraImageCapture*& imageCapture)
+{
+	//The QCameraImageCapture class is used for the recording of media content.
+	connect(imageCapture, SIGNAL(readyForCaptureChanged(bool)), this, SLOT(readyForCapture(bool)));
+	connect(imageCapture, SIGNAL(imageCaptured(int, QImage)), this, SLOT(processCapturedImage(int, QImage)));
+	connect(imageCapture, SIGNAL(imageSaved(int, QString)), this, SLOT(imageSaved(int, QString)));
+	connect(imageCapture, SIGNAL(error(int, QCameraImageCapture::Error, QString)),
+		this, SLOT(displayCaptureError(int, QCameraImageCapture::Error, QString)));
+	m_imageCapture = imageCapture;
+}
+
+void Camera::setCameraAndMediaRecorder(QMediaRecorder*& mediaRecorder)
+{
+    connect(mediaRecorder, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(updateRecorderState(QMediaRecorder::State)));
+    connect(mediaRecorder, SIGNAL(durationChanged(qint64)), this, SLOT(updateRecordTime()));
+    connect(mediaRecorder, SIGNAL(error(QMediaRecorder::Error)), this, SLOT(displayRecorderError()));
+    mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
+    updateRecorderState(mediaRecorder->state());
+	m_mediaRecorder = mediaRecorder;
+
+}
+
+void Camera::setCameraSelf(QCamera*& camera)
+{
+	connect(camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(updateCameraState(QCamera::State)));
+	connect(camera, SIGNAL(error(QCamera::Error)), this, SLOT(displayCameraError()));
+	connect(camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)),
+		this, SLOT(updateLockStatus(QCamera::LockStatus, QCamera::LockChangeReason)));
+	camera->setViewfinder(ui->viewfinder);
+	updateCameraState(camera->state());
+    updateLockStatus(camera->lockStatus(), QCamera::UserRequest);
+	m_camera = camera;
+}
+
 void Camera::setCamera(const QCameraInfo &cameraInfo)
 {
 	UnInitRecorder();
-	m_camera = new QCamera(cameraInfo);
-	QCamera *c = m_camera;
-    connect(c, SIGNAL(stateChanged(QCamera::State)), this, SLOT(updateCameraState(QCamera::State)));
-    connect(c, SIGNAL(error(QCamera::Error)), this, SLOT(displayCameraError()));
-
-	m_mediaRecorder = new QMediaRecorder(c);
-    connect(m_mediaRecorder, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(updateRecorderState(QMediaRecorder::State)));
-
-	m_imageCapture = new QCameraImageCapture(c);
-
-    connect(m_mediaRecorder, SIGNAL(durationChanged(qint64)), this, SLOT(updateRecordTime()));
-    connect(m_mediaRecorder, SIGNAL(error(QMediaRecorder::Error)), this, SLOT(displayRecorderError()));
-
-	m_mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
+	QCamera *camera = new QCamera(cameraInfo);
+	QMediaRecorder* memdiaRecorder = new QMediaRecorder(camera);
+	QCameraImageCapture* imageCapture = new QCameraImageCapture(camera);
+	setCameraSelf(camera);
+	setCameraAndImageCapture(imageCapture);
+	setCameraAndMediaRecorder(memdiaRecorder);
 
     connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), SLOT(setExposureCompensation(int)));
-#if 1
-    c->setViewfinder(ui->viewfinder);
-#else
-    c->setViewfinder(&m_surface);
-#endif
-    updateCameraState(c->state());
-    updateLockStatus(c->lockStatus(), QCamera::UserRequest);
-    updateRecorderState(m_mediaRecorder->state());
-    // 信号和槽的链接要注意参数部分，不能有变量名
-    connect(&m_surface, SIGNAL(CaptureFrame(const QVideoFrame)), this, SLOT(sendVideo(const QVideoFrame)));
-
-    //The QCameraImageCapture class is used for the recording of media content.
-    connect(m_imageCapture, SIGNAL(readyForCaptureChanged(bool)), this, SLOT(readyForCapture(bool)));
-    connect(m_imageCapture, SIGNAL(imageCaptured(int,QImage)), this, SLOT(processCapturedImage(int,QImage)));
-    connect(m_imageCapture, SIGNAL(imageSaved(int,QString)), this, SLOT(imageSaved(int,QString)));
-    connect(m_imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)),
-		this, SLOT(displayCaptureError(int,QCameraImageCapture::Error,QString)));
-
-    connect(c, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)),
-        this, SLOT(updateLockStatus(QCamera::LockStatus,QCamera::LockChangeReason)));
-
-    ui->captureWidget->setTabEnabled(0, (c->isCaptureModeSupported(QCamera::CaptureStillImage)));
-    ui->captureWidget->setTabEnabled(1, (c->isCaptureModeSupported(QCamera::CaptureVideo)));
-
+    ui->captureWidget->setTabEnabled(0, (camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
+    ui->captureWidget->setTabEnabled(1, (camera->isCaptureModeSupported(QCamera::CaptureVideo)));
     updateCaptureMode();
-    c->start();
+
+    camera->start();
 }
 
 void Camera::keyPressEvent(QKeyEvent * event)
