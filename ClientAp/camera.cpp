@@ -58,7 +58,7 @@ Q_DECLARE_METATYPE(QCameraInfo)
 
 Camera* Camera::instanceCamera = NULL;
 
-Camera::Camera(QWidget *parent) : QMainWindow(parent), ui(new Ui::Camera), m_camera(0),
+Camera::Camera(QWidget *parent) : QMainWindow(parent), ui(new Ui::Camera), m_camera(0), m_imageSize(100),
 	m_imageCapture(0), m_mediaRecorder(0), isCapturingImage(false), applicationExiting(false)
 {
     ui->setupUi(this);
@@ -81,6 +81,7 @@ Camera::Camera(QWidget *parent) : QMainWindow(parent), ui(new Ui::Camera), m_cam
     connect(ui->captureWidget, SIGNAL(currentChanged(int)), SLOT(updateCaptureMode()));
 
     setCamera(QCameraInfo::defaultCamera());
+	
 }
 
 int Camera::InitRecorder()
@@ -125,6 +126,26 @@ void Camera::delCamera()
     instanceCamera = NULL;
 }
 
+bool Camera::DisplayImage(const QImage &image)
+{
+	int width = ui->label->width() * m_imageSize / 100;
+	int height = ui->label->height() * m_imageSize / 100;
+	QImage imgScaled = image.scaled(width, height, Qt::KeepAspectRatio);
+	
+	QMatrix matrix;
+	matrix.rotate(180);
+	QImage imgRotate = imgScaled.transformed(matrix);
+
+	ui->label->setPixmap(QPixmap::fromImage(imgRotate));
+	return true;
+}
+
+bool Camera::setImageValue(int size)
+{
+	m_imageSize = size;
+	return true;
+}
+
 /* 发送视频到远端 */
 bool Camera::sendVideo(const QVideoFrame &frame)
 {
@@ -136,32 +157,22 @@ bool Camera::sendVideo(const QVideoFrame &frame)
     cloneFrame.map(QAbstractVideoBuffer::ReadOnly);
 	const QImage::Format& format = QVideoFrame::imageFormatFromPixelFormat(cloneFrame.pixelFormat());
     QImage image(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), format);
-    ui->label->setPixmap(QPixmap::fromImage(image));
-    qDebug()<<cloneFrame.mappedBytes();
-    cloneFrame.unmap();
+	qDebug() << cloneFrame.mappedBytes();
+	DisplayImage(image);
 	QByteArray buffer;
 	bool ret = image.loadFromData(buffer, "png");
-
-	return true;
-    // 4.图像缩放采用scaled函数。scaled函数中width和height表示缩放后图像的宽和高，即将原图像缩放到(width,height)大小
-	QImage imgScaled = image.scaled(ui->label->width(), ui->label->height(), Qt::KeepAspectRatio);
-    ui->label->setPixmap(QPixmap::fromImage(imgScaled));
-    // 5.图像顺时针旋转利用QImage类的transformed函数，向transformed函数传入QMatrix对象，QMatrix对象指定了旋转的角度
-	QMatrix matrix;
-	matrix.rotate(270);
-	QImage imgRotate = image.transformed(matrix);
-	ui->label->setPixmap(QPixmap::fromImage(imgRotate));
-    // 6.图像连续缩放可以利用Horizontal Slider，该部件指向的值为整型value
-	int value = 40;
-	image.scaled(ui->label->width() * value / 100, ui->label->height() * value / 100, Qt::KeepAspectRatio);
+    cloneFrame.unmap();
 	return true;
 }
 
 void Camera::setCameraSurface(VideoWidgetSurface*& videoSurface)
 {
-	// 信号和槽的链接要注意参数部分，不能有变量名
+	// 6.图像连续缩放可以利用Horizontal Slider，该部件指向的值为整型value
 	connect(videoSurface, SIGNAL(CaptureFrame(const QVideoFrame)), this, SLOT(sendVideo(const QVideoFrame)));
-	m_camera->setViewfinder(videoSurface);
+	ui->exposureCompensation->setMinimum(1);
+	ui->exposureCompensation->setMinimum(100);
+	connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), this, SLOT(setImageValue(int)));
+	videoSurface->setSource(m_camera);
 	m_surface = videoSurface;
 }
 
@@ -205,10 +216,11 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
 	QCamera *camera = new QCamera(cameraInfo);
 	QMediaRecorder* memdiaRecorder = new QMediaRecorder(camera);
 	QCameraImageCapture* imageCapture = new QCameraImageCapture(camera);
+	// VideoWidgetSurface* videoSurface = new VideoWidgetSurface();
 	setCameraSelf(camera);
 	setCameraAndImageCapture(imageCapture);
 	setCameraAndMediaRecorder(memdiaRecorder);
-
+	// setCameraSurface(videoSurface);
     connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), SLOT(setExposureCompensation(int)));
     ui->captureWidget->setTabEnabled(0, (camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
     ui->captureWidget->setTabEnabled(1, (camera->isCaptureModeSupported(QCamera::CaptureVideo)));

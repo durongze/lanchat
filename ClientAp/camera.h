@@ -65,6 +65,8 @@ public:
     static Camera* getCamera();
     static void delCamera();
 private slots:
+    bool setImageValue(int size);
+    bool DisplayImage(const QImage &image);
     bool sendVideo(const QVideoFrame &frame);
     void setCamera(const QCameraInfo &cameraInfo);
 	void setCameraSelf(QCamera*& camera);
@@ -143,6 +145,7 @@ private:
         这样当m_pCamera执行完Start()后,就可以在m_pVideoSuface对象的present函数中得到每一帧的QVideoFrame视频数据.
         在测试程序中获取的视频数据格式为RGB32,需要先转为YUV240P的格式,然后再用FFmpeg的H.264编码功能实现视频数据编码.*/
     VideoWidgetSurface *m_surface;
+	int m_imageSize;
     QVideoSurfaceFormat  *m_format;
     static Camera* instanceCamera;
 };
