@@ -77,11 +77,10 @@ Camera::Camera(QWidget *parent) : QMainWindow(parent), ui(new Ui::Camera), m_cam
         ui->menuDevices->addAction(videoDeviceAction);
     }
 
-    connect(videoDevicesGroup, SIGNAL(triggered(QAction*)), SLOT(updateCameraDevice(QAction*)));
-    connect(ui->captureWidget, SIGNAL(currentChanged(int)), SLOT(updateCaptureMode()));
+    connect(videoDevicesGroup, SIGNAL(triggered(QAction*)), this, SLOT(updateCameraDevice(QAction*)));
+	connect(ui->captureWidget, SIGNAL(currentChanged(int)), this, SLOT(updateCaptureMode(int)));
 
     setCamera(QCameraInfo::defaultCamera());
-	
 }
 
 int Camera::InitRecorder()
@@ -221,10 +220,12 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
 	setCameraAndImageCapture(imageCapture);
 	setCameraAndMediaRecorder(memdiaRecorder);
 	// setCameraSurface(videoSurface);
-    connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), SLOT(setExposureCompensation(int)));
+    connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), this, SLOT(setExposureCompensation(int)));
+
     ui->captureWidget->setTabEnabled(0, (camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
     ui->captureWidget->setTabEnabled(1, (camera->isCaptureModeSupported(QCamera::CaptureVideo)));
-    updateCaptureMode();
+	// ui->captureWidget->installEventFilter(this);
+    updateCaptureMode(1);
 
     camera->start();
 }
@@ -415,7 +416,7 @@ void Camera::stopCamera()
 	m_camera->stop();
 }
 
-void Camera::updateCaptureMode()
+void Camera::updateCaptureMode(int index)
 {
     int tabIndex = ui->captureWidget->currentIndex();
     QCamera::CaptureModes captureMode = tabIndex == 0 ? QCamera::CaptureStillImage : QCamera::CaptureVideo;
@@ -439,6 +440,7 @@ void Camera::updateCameraState(QCamera::State state)
         ui->actionStopCamera->setEnabled(false);
         ui->captureWidget->setEnabled(false);
         ui->actionSettings->setEnabled(false);
+		break;
     }
 }
 
