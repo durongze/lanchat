@@ -35,7 +35,7 @@ int OpenFreeType(FT_Library& pFTLib, FT_Face& pFTFace)
 		return   -1;
 	}
 	//从字体文件创建face，simhei.ttf是黑体
-	error = FT_New_Face(pFTLib, "C:/Windows/Fonts/simhei.ttf", 0, &pFTFace);
+	error = FT_New_Face(pFTLib, "C:/Windows/Fonts/SIMLI.TTF", 0, &pFTFace);
 	if (error) {
 		std::cout << "FT_New_Face " << error << std::endl;
 	}
@@ -114,10 +114,45 @@ int GenUtf8ByChar(char* szAnsi, wchar_t*& wszString, int& wcsLen)
 	return 0;
 }
 
-int WriteWordToBmpByFace(FT_Face& pFTFace, BITMAPINFOHEADER& strInfo, IMAGEDATA*& arrayColor)
+int DrawWord(int bitmapStart, FT_Bitmap& bitmap, BITMAPINFOHEADER& strInfo, IMAGEDATA*& arrayColor)
+{
+	for (int i = 0; i < bitmap.rows; ++i) {
+		for (int j = 0; j < bitmap.width; ++j) {
+			if (bitmap.buffer[i * bitmap.width + j] != 0) {
+				//像素点存在，就置为红色，其他都为默认的白色
+				arrayColor[(i + 20)*strInfo.biWidth + j + bitmapStart + 20].green = 0;
+				arrayColor[(i + 20)*strInfo.biWidth + j + bitmapStart + 20].blue = 0;
+			}
+		}
+	}
+	return 0;
+}
+
+int WriteWord(WORD word, int& bitmapStart, FT_Face& pFTFace,
+	BITMAPINFOHEADER& strInfo, IMAGEDATA*& arrayColor)
 {
 	FT_Error error = 0;
 	FT_Glyph glyph;
+	//读取一个字体位图到face中
+	FT_Load_Glyph(pFTFace, FT_Get_Char_Index(pFTFace, word), FT_LOAD_DEFAULT);
+	error = FT_Get_Glyph(pFTFace->glyph, &glyph);
+	if (error) {
+		return -1;
+	}
+	//  convert glyph to bitmap with 256 gray
+	FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, 0, 1);
+	FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
+	//把字插入到图片中，每个字中间间隔10个像素，并且离左上角x=100,y=100偏移量
+	DrawWord(bitmapStart, bitmap_glyph->bitmap, strInfo, arrayColor);
+	bitmapStart += bitmap_glyph->bitmap.width + 5;
+	//  free glyph
+	FT_Done_Glyph(glyph);
+	glyph = NULL;
+	return 0;
+}
+
+int WriteWordToBmpByFace(FT_Face& pFTFace, BITMAPINFOHEADER& strInfo, IMAGEDATA*& arrayColor)
+{
 	WORD word;
 	wchar_t *pUser = TEXT("麦思");
 	int pUserLen = lstrlen(pUser);
@@ -131,32 +166,9 @@ int WriteWordToBmpByFace(FT_Face& pFTFace, BITMAPINFOHEADER& strInfo, IMAGEDATA*
 	for (int k = 0; k < pUserLen; k++) {
 		//复制内存块，把wszString中存储的文字一个一个取出来，复制到word中，已方便读取字体位图
 		memcpy(&word, pUser + k, 2);
-		//读取一个字体位图到face中
-		FT_Load_Glyph(pFTFace, FT_Get_Char_Index(pFTFace, word), FT_LOAD_DEFAULT);
-		error = FT_Get_Glyph(pFTFace->glyph, &glyph);
-		if (error) {
-			return -1;
-		}
-		//  convert glyph to bitmap with 256 gray
-		FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, 0, 1);
-		FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
-		//得到字体的bitmap位图
-		FT_Bitmap& bitmap = bitmap_glyph->bitmap;
-		//把字插入到图片中，每个字中间间隔10个像素，并且离左上角x=100,y=100偏移量
-		for (int i = 0; i < bitmap.rows; ++i) {
-			for (int j = 0; j < bitmap.width; ++j) {
-				if (bitmap.buffer[i * bitmap.width + j] != 0) {
-					//像素点存在，就置为红色，其他都为默认的白色
-					arrayColor[(i + 40)*strInfo.biWidth + j + bitmap_width_sum + 40].green = 0;
-					arrayColor[(i + 40)*strInfo.biWidth + j + bitmap_width_sum + 40].blue = 0;
-				}
-			}
-		}
-		bitmap_width_sum += bitmap.width + 5;
+		WriteWord(word, bitmap_width_sum, pFTFace, strInfo, arrayColor);
 	}
-	//  free glyph
-	FT_Done_Glyph(glyph);
-	glyph = NULL;
+
 	return 0;
 }
 
