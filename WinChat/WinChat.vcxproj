@@ -93,7 +93,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>freetyped.lib;zlibstaticd.lib;d3d11.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freetyped.lib;d3d11.lib;dxgi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>E:\program\freetype29\lib;E:\program\zlib\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -165,6 +165,17 @@
     <ClInclude Include="VertexShader.h" />
     <ClInclude Include="WaveApi.h" />
     <ClInclude Include="WinChat.h" />
+    <ClInclude Include="zlib\crc32.h" />
+    <ClInclude Include="zlib\deflate.h" />
+    <ClInclude Include="zlib\gzguts.h" />
+    <ClInclude Include="zlib\inffast.h" />
+    <ClInclude Include="zlib\inffixed.h" />
+    <ClInclude Include="zlib\inflate.h" />
+    <ClInclude Include="zlib\inftrees.h" />
+    <ClInclude Include="zlib\trees.h" />
+    <ClInclude Include="zlib\zconf.h" />
+    <ClInclude Include="zlib\zlib.h" />
+    <ClInclude Include="zlib\zutil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DisplayManager.cpp" />
@@ -189,6 +200,21 @@
     <ClCompile Include="ThreadManager.cpp" />
     <ClCompile Include="WaveApi.cpp" />
     <ClCompile Include="WinChat.cpp" />
+    <ClCompile Include="zlib\adler32.c" />
+    <ClCompile Include="zlib\compress.c" />
+    <ClCompile Include="zlib\crc32.c" />
+    <ClCompile Include="zlib\deflate.c" />
+    <ClCompile Include="zlib\gzclose.c" />
+    <ClCompile Include="zlib\gzlib.c" />
+    <ClCompile Include="zlib\gzread.c" />
+    <ClCompile Include="zlib\gzwrite.c" />
+    <ClCompile Include="zlib\infback.c" />
+    <ClCompile Include="zlib\inffast.c" />
+    <ClCompile Include="zlib\inflate.c" />
+    <ClCompile Include="zlib\inftrees.c" />
+    <ClCompile Include="zlib\trees.c" />
+    <ClCompile Include="zlib\uncompr.c" />
+    <ClCompile Include="zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WinChat.rc" />
