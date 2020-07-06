@@ -86,7 +86,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>E:\program\freetype29\include;E:\program\zlib\include;</AdditionalIncludeDirectories>
     </ClCompile>
@@ -152,6 +152,9 @@
     <ClInclude Include="DisplayManager.h" />
     <ClInclude Include="DuplicationManager.h" />
     <ClInclude Include="FreeTypeBmp.h" />
+    <ClInclude Include="giflib\gif_hash.h" />
+    <ClInclude Include="giflib\gif_lib.h" />
+    <ClInclude Include="giflib\gif_lib_private.h" />
     <ClInclude Include="OutputManager.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="Resource.h" />
@@ -167,6 +170,14 @@
     <ClCompile Include="DisplayManager.cpp" />
     <ClCompile Include="DuplicationManager.cpp" />
     <ClCompile Include="FreeTypeBmp.cpp" />
+    <ClCompile Include="giflib\dgif_lib.c" />
+    <ClCompile Include="giflib\egif_lib.c" />
+    <ClCompile Include="giflib\gifalloc.c" />
+    <ClCompile Include="giflib\gif_err.c" />
+    <ClCompile Include="giflib\gif_font.c" />
+    <ClCompile Include="giflib\gif_hash.c" />
+    <ClCompile Include="giflib\openbsd-reallocarray.c" />
+    <ClCompile Include="giflib\quantize.c" />
     <ClCompile Include="OutputManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
