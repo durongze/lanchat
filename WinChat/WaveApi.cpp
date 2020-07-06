@@ -56,7 +56,7 @@ int WaveInApi::Init()
 	int nReturn = waveInGetNumDevs();
 	for (int i = 0; i < nReturn; i++)
 	{
-		memcpy(&wic, 0, sizeof(wic));
+		memset(&wic, 0, sizeof(wic));
 		waveInGetDevCaps(i, &wic, sizeof(WAVEINCAPS));
 		printf("#%d\tÉè±¸Ãû£º%s\n", i, wic.szPname);
 	}

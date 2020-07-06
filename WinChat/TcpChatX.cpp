@@ -301,7 +301,7 @@
 					EmptyClipboard();
 					SetClipboardData(CF_BITMAP, bitmap);
 					CloseClipboard();
-					tc->funcDrawWin(NULL);
+					tc->funcDrawWin(tc->img);
 				}
 			}
 			Sleep(111);

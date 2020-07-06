@@ -11,6 +11,8 @@
 #include "OutputManager.h"
 #include "ThreadManager.h"
 #include "TcpChatX.h"
+#include "WaveApi.h"
+#include "FreeTypeBmp.h"
 
 #define MAX_LOADSTRING 100
 
@@ -99,7 +101,14 @@ int AppendToMsgBrowser(const TcpPackage& tp)
 
 int DrawWindowRegon(TcpPackage *tp)
 {
-	if (tp == NULL) {
+	if (tp->size > 2048) {
+		BITMAPINFOHEADER* bi = (BITMAPINFOHEADER*)tp->buf;
+		IMAGEDATA* bits = (IMAGEDATA*)tp->buf + sizeof(BITMAPINFOHEADER);
+		HBITMAP hbitmap = CreateBitmap(bi->biWidth, bi->biHeight, bi->biPlanes, bi->biBitCount, bits);
+		if (hbitmap == NULL) {
+			return -1;
+		}
+		WriteWordToBmp(*bi, bits);
 		RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
 		RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
@@ -552,7 +561,7 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HBITMAP hBitmap;
 	TcpChat::GetInstance()->TransBitMap(hBitmap);
 	HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
-	HDC hdcCopy = CreateCompatibleDC(hdcDesk); //  
+	HDC hdcCopy = CreateCompatibleDC(hdcDesk); // 
 	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
 	BitBlt(hdcCamera, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
 	DeleteObject(hObj);
