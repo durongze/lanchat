@@ -119,17 +119,18 @@ int WriteWordToBmpByFace(FT_Face& pFTFace, BITMAPINFOHEADER& strInfo, IMAGEDATA*
 	FT_Error error = 0;
 	FT_Glyph glyph;
 	WORD word;
-	wchar_t *pUser;
+	wchar_t *pUser = TEXT("麦思");
+	int pUserLen = lstrlen(pUser);
 	wchar_t user[MAX_PATH] = { 0 };
 	DWORD userLen = sizeof(user);
-	// GenUtf8ByChar("麦思", pUser, userLen);
-	GetUserName(user, &userLen);
+	GenUtf8ByChar(("麦思"), pUser, pUserLen);
+	// GetUserName(user, &userLen);
 	//字体偏移量，用做字体显示
 	int bitmap_width_sum = 0;
 	//for循环实现一个字一个字插入到图片中
-	for (int k = 0; k < userLen; k++) {
+	for (int k = 0; k < pUserLen; k++) {
 		//复制内存块，把wszString中存储的文字一个一个取出来，复制到word中，已方便读取字体位图
-		memcpy(&word, user + k, 2);
+		memcpy(&word, pUser + k, 2);
 		//读取一个字体位图到face中
 		FT_Load_Glyph(pFTFace, FT_Get_Char_Index(pFTFace, word), FT_LOAD_DEFAULT);
 		error = FT_Get_Glyph(pFTFace->glyph, &glyph);
