@@ -88,7 +88,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>E:\program\freetype29\include;E:\program\zlib\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\program\freetype29\include;zlib;giflib;getopt;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -152,6 +152,7 @@
     <ClInclude Include="DisplayManager.h" />
     <ClInclude Include="DuplicationManager.h" />
     <ClInclude Include="FreeTypeBmp.h" />
+    <ClInclude Include="getopt\getopt.h" />
     <ClInclude Include="giflib\gif_hash.h" />
     <ClInclude Include="giflib\gif_lib.h" />
     <ClInclude Include="giflib\gif_lib_private.h" />
@@ -181,6 +182,8 @@
     <ClCompile Include="DisplayManager.cpp" />
     <ClCompile Include="DuplicationManager.cpp" />
     <ClCompile Include="FreeTypeBmp.cpp" />
+    <ClCompile Include="getopt\getopt.c" />
+    <ClCompile Include="GifEditor.cpp" />
     <ClCompile Include="giflib\dgif_lib.c" />
     <ClCompile Include="giflib\egif_lib.c" />
     <ClCompile Include="giflib\gifalloc.c" />

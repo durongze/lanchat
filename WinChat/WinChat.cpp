@@ -385,7 +385,7 @@ void DisplayMsg(_In_ LPCWSTR Str, _In_ LPCWSTR Title, HRESULT hr)
 
 	delete[] OutStr;
 }
-
+extern int gif_main(int argc, char **argv);
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -393,7 +393,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
+	int argc = 0;
+	char *argv[10] = {"", ""};
+	gif_main(argc, argv);
     // TODO: 在此放置代码。
 
     // 初始化全局字符串
