@@ -154,21 +154,21 @@ int WriteWord(WORD word, int& bitmapStart, FT_Face& pFTFace,
 int WriteWordToBmpByFace(FT_Face& pFTFace, BITMAPINFOHEADER& strInfo, IMAGEDATA*& arrayColor)
 {
 	WORD word;
-	wchar_t *pUser = TEXT("麦思");
-	int pUserLen = lstrlen(pUser);
+	wchar_t *pUser = NULL;
+	int pUserLen = 0;
 	wchar_t user[MAX_PATH] = { 0 };
 	DWORD userLen = sizeof(user);
 	GenUtf8ByChar(("麦思"), pUser, pUserLen);
 	// GetUserName(user, &userLen);
 	//字体偏移量，用做字体显示
-	int bitmap_width_sum = 0;
+	int bitmap_width_sum = rand() % 2 * 200;
 	//for循环实现一个字一个字插入到图片中
-	for (int k = 0; k < pUserLen; k++) {
+	for (int k = 0; k < 1; k++) {
 		//复制内存块，把wszString中存储的文字一个一个取出来，复制到word中，已方便读取字体位图
-		memcpy(&word, pUser + k, 2);
+		memcpy(&word, pUser + rand() % 2, 2);
 		WriteWord(word, bitmap_width_sum, pFTFace, strInfo, arrayColor);
 	}
-
+	delete[] pUser;
 	return 0;
 }
 
