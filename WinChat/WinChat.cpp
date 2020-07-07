@@ -385,6 +385,26 @@ void DisplayMsg(_In_ LPCWSTR Str, _In_ LPCWSTR Title, HRESULT hr)
 
 	delete[] OutStr;
 }
+
+int OpenConsole()
+{
+#ifdef WIN32
+	_tsetlocale(LC_ALL, _T(" "));
+	::AllocConsole();
+	::freopen("CONIN$", "r", stdin);
+	::freopen("CONOUT$", "w", stdout);
+	::freopen("CONOUT$", "w", stderr);
+#endif // WIN32
+	return 0;
+}
+
+int ColseConsole()
+{
+	fclose(stdin);
+	fclose(stdout);
+	fclose(stderr);
+	return 0;
+}
 extern int gif_main(int argc, char **argv);
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -393,8 +413,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+	// OpenConsole();
 	int argc = 0;
-	char *argv[10] = {"", ""};
+	char *argv[10] = {"", "-b" "255"};
 	gif_main(argc, argv);
     // TODO: 在此放置代码。
 
