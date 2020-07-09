@@ -96,11 +96,11 @@ int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, UINT8* GrbBu
 		exit(EXIT_FAILURE);
 	}
 	DumpScreen2RGBA(GrbBuffer, ColorMap, ScreenBuffer, GifFile->SWidth, GifFile->SHeight);
-	HBITMAP hBitmap = CreateBitmap(GifFile->SWidth, GifFile->SHeight, 1, 32, GrbBuffer);
+	/* HBITMAP hBitmap = CreateBitmap(GifFile->SWidth, GifFile->SHeight, 1, 32, GrbBuffer);
 	OpenClipboard(NULL);
 	EmptyClipboard();
 	SetClipboardData(CF_BITMAP, hBitmap);
-	CloseClipboard();
+	CloseClipboard(); */
 	return 0;
 }
 
@@ -132,10 +132,11 @@ int HandleExt(GifFileType *GifFile)
 	return 0;
 }
 
-int gif_main(int argc, char **argv)
+unsigned char *GrbBuffer = NULL;
+
+int gif_main(DWORD *arg)
 {
 	int error;
-	unsigned char *GrbBuffer = NULL;
 	GifFileType *GifFile;
 	char *fileName = "man.gif";
 	GifFile = DGifOpenFileName(fileName, &error);

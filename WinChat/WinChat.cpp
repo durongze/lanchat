@@ -410,7 +410,7 @@ int ColseConsole()
 	fclose(stderr);
 	return 0;
 }
-extern int gif_main(int argc, char **argv);
+extern int gif_main(DWORD* arg);
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -419,9 +419,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 	// OpenConsole();
-	int argc = 0;
-	char *argv[10] = {"", "-b" "255"};
-	gif_main(argc, argv);
+
     // TODO: 在此放置代码。
 
     // 初始化全局字符串
@@ -442,6 +440,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->Accept, tc, 0, &threadId);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->SendImage, tc, 0, &threadId);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->RecvImage, tc, 0, &threadId);
+
     MSG msg;
 
     // 主消息循环: 
@@ -521,6 +520,7 @@ int HandleCmdConnect()
 	static bool IsConnected = false;
 	if (IsConnected) {
 		SetWindowText(g_hConnBtn, TEXT("连接"));
+		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)gif_main, tc, 0, &threadId);
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->DisConnectRemoteSvr, tc, 0, &threadId);
 		IsConnected = false;
 	} else {
@@ -596,7 +596,7 @@ int HandlePaintMsgCamera()
 	EndPaint(cam, &psCamera);
 	return 0;
 }
-
+extern unsigned char *GrbBuffer;
 int HandlePaintMsgAvatar()
 {
 	RECT rctA; // 定义一个RECT结构体，存储窗口的长宽高
@@ -607,6 +607,11 @@ int HandlePaintMsgAvatar()
 	HDC hdcAvatar = BeginPaint(avatar, &psAvatar);
 	HBITMAP hBitmap;
 	TcpChat::GetInstance()->TransBitMap(hBitmap);
+	// hBitmap = CreateBitmap(200, 200, 1, 32, GrbBuffer);
+	/* OpenClipboard(NULL);
+	EmptyClipboard();
+	SetClipboardData(CF_BITMAP, hBitmap);
+	CloseClipboard(); */
 	HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
 	HDC hdcCopy = CreateCompatibleDC(hdcDesk); // 
 	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
