@@ -96,7 +96,7 @@ int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, UINT8* GrbBu
 		exit(EXIT_FAILURE);
 	}
 	DumpScreen2RGBA(GrbBuffer, ColorMap, ScreenBuffer, GifFile->SWidth, GifFile->SHeight);
-	HBITMAP hBitmap = CreateBitmap(GifFile->SWidth, GifFile->SHeight, 1, 4, GrbBuffer);
+	HBITMAP hBitmap = CreateBitmap(GifFile->SWidth, GifFile->SHeight, 1, 32, GrbBuffer);
 	OpenClipboard(NULL);
 	EmptyClipboard();
 	SetClipboardData(CF_BITMAP, hBitmap);
