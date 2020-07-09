@@ -297,10 +297,6 @@
 				*(tc->img) = tp;
 				tc->cli.TransBitMap(tp, bitmap);
 				if (tc->funcDrawWin) {
-					OpenClipboard(NULL);
-					EmptyClipboard();
-					SetClipboardData(CF_BITMAP, bitmap);
-					CloseClipboard();
 					tc->funcDrawWin(tc->img);
 				}
 			}
