@@ -299,6 +299,7 @@
 				if (tc->funcDrawWin) {
 					tc->funcDrawWin(tc->img);
 				}
+				DeleteObject(bitmap);
 			}
 			Sleep(111);
 		}

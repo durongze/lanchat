@@ -109,6 +109,7 @@ int DrawWindowRegon(TcpPackage *tp)
 			return -1;
 		}
 		WriteWordToBmp(*bi, bits);
+		DeleteObject(hbitmap);
 		RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
 		RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
@@ -588,6 +589,7 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
 	BitBlt(hdcCamera, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
 	DeleteObject(hObj);
+	DeleteObject(hBitmap);
 	DeleteDC(hdcCopy);
 	DeleteDC(hdcDesk);
 #else
