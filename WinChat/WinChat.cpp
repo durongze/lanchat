@@ -27,6 +27,7 @@ HWND g_hRecvMsg;
 HWND g_hConnBtn;
 HWND g_hSendBtn;
 HWND g_hCamera;
+HWND g_hAvatar;
 HWND g_hMainWindow;
 wchar_t g_MsgBrowser[2048] = {0};
 
@@ -110,8 +111,11 @@ int DrawWindowRegon(TcpPackage *tp)
 		}
 		WriteWordToBmp(*bi, bits);
 		DeleteObject(hbitmap);
-		RECT regon = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
-		RedrawWindow(g_hMainWindow, &regon, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
+		RECT regonCam = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
+		RedrawWindow(g_hMainWindow, &regonCam, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
+		UpdateWindow(g_hMainWindow);
+		RECT regonAvatar = { 710 + CAMERA_WIDTH - 112, 70 + CAMERA_HEIGHT + 10,  710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT + 10 + 112 };
+		RedrawWindow(g_hMainWindow, &regonAvatar, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
 	} else {
 		AppendToMsgBrowser(*tp);
@@ -571,17 +575,14 @@ int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+int HandlePaintMsgCamera()
 {
-	HWND cam = g_hCamera;	
-	PAINTSTRUCT ps, psCamera;
 	RECT rctA; // 定义一个RECT结构体，存储窗口的长宽高
+	HWND cam = g_hCamera;
+	PAINTSTRUCT psCamera;
+	::GetWindowRect(cam, &rctA);
 
-	::GetWindowRect(cam, &rctA); // 通过窗口句柄获得窗口的大小存储在rctA结构中
-
-	HDC hdc = BeginPaint(hWnd, &ps);
-	HDC hdcCamera = BeginPaint(g_hCamera, &psCamera);
-#if 1
+	HDC hdcCamera = BeginPaint(cam, &psCamera);
 	HBITMAP hBitmap;
 	TcpChat::GetInstance()->TransBitMap(hBitmap);
 	HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
@@ -592,6 +593,41 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	DeleteObject(hBitmap);
 	DeleteDC(hdcCopy);
 	DeleteDC(hdcDesk);
+	EndPaint(cam, &psCamera);
+	return 0;
+}
+
+int HandlePaintMsgAvatar()
+{
+	RECT rctA; // 定义一个RECT结构体，存储窗口的长宽高
+	HWND avatar = g_hAvatar;
+	PAINTSTRUCT psAvatar;
+	::GetWindowRect(avatar, &rctA);
+
+	HDC hdcAvatar = BeginPaint(avatar, &psAvatar);
+	HBITMAP hBitmap;
+	TcpChat::GetInstance()->TransBitMap(hBitmap);
+	HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
+	HDC hdcCopy = CreateCompatibleDC(hdcDesk); // 
+	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
+	BitBlt(hdcAvatar, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
+	DeleteObject(hObj);
+	DeleteObject(hBitmap);
+	DeleteDC(hdcCopy);
+	DeleteDC(hdcDesk);
+	EndPaint(avatar, &psAvatar);
+	return 0;
+}
+
+int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+
+	PAINTSTRUCT ps;
+	HDC hdc = BeginPaint(hWnd, &ps);
+
+#if 1
+	HandlePaintMsgCamera();
+	HandlePaintMsgAvatar();
 #else
 	// TODO: 在此处添加使用 hdc 的任何绘图代码...
 	int nWidth = GetSystemMetrics(SM_CXSCREEN); // 得到屏幕的分辨率的x    
@@ -606,7 +642,7 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	DeleteDC(hdcCopy);
 	DeleteDC(hdcDesk);
 #endif
-	EndPaint(g_hCamera, &psCamera);
+
 	EndPaint(hWnd, &ps);
 	return 0;
 }
@@ -650,7 +686,11 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
 		710, 70, CAMERA_WIDTH, CAMERA_HEIGHT,
 		hWnd, (HMENU)IDC_CAMERA, hInst, NULL);
-	
+	g_hAvatar = CreateWindow(TEXT("static"), TEXT("头像:"),
+		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
+		710 + CAMERA_WIDTH - 112, 70 + CAMERA_HEIGHT + 10, 112, 112,
+		hWnd, (HMENU)IDC_AVATAR, hInst, NULL);
+
 	SetWindowText(g_hIpAddr, TEXT("127.0.0.1"));
 	SetWindowText(g_hPort, TEXT("3000"));
 
