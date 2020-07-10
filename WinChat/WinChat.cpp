@@ -100,6 +100,8 @@ int AppendToMsgBrowser(const TcpPackage& tp)
 	}
 	msgLen = lstrlen(g_MsgBrowser);
 	memcpy(g_MsgBrowser + msgLen, tp.buf, lstrlen((wchar_t*)tp.buf) * 2);
+	msgLen = lstrlen(g_MsgBrowser);
+	memcpy(g_MsgBrowser + msgLen , TEXT(" "), lstrlen(TEXT(" ")) * 2);
 	SetWindowText(g_hRecvMsg, g_MsgBrowser);
 	return 0;
 }
@@ -719,11 +721,11 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		520, 10, 110, 40,
 		hWnd, (HMENU)IDC_PORT, hInst, NULL);
 	g_hRecvMsg = CreateWindow(TEXT("edit"), NULL,
-		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
+		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | WS_VSCROLL | WS_HSCROLL,
 		30, 70, 600, 200,
 		hWnd, (HMENU)IDC_RECV_MSG, hInst, NULL);
 	g_hSendMsg = CreateWindow(TEXT("edit"), NULL, 
-		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
+		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | WS_VSCROLL | WS_HSCROLL,
 		30, 300, 600, 120,
 		hWnd, (HMENU)IDC_SEND_MSG, hInst, NULL);
 
