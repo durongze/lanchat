@@ -13,6 +13,8 @@
 #include "TcpChatX.h"
 #include "WaveApi.h"
 #include "FreeTypeBmp.h"
+#include "GifEditor.h"
+#include <commdlg.h>
 
 #define MAX_LOADSTRING 100
 
@@ -26,10 +28,12 @@ HWND g_hSendMsg;
 HWND g_hRecvMsg;
 HWND g_hConnBtn;
 HWND g_hSendBtn;
+HWND g_hLoadBtn;
 HWND g_hCamera;
 HWND g_hAvatar;
 HWND g_hMainWindow;
 wchar_t g_MsgBrowser[2048] = {0};
+GifBitMap GrbBuffer = { 0, 0,{ 0 } };
 
 HRESULT SystemTransitionsExpectedErrors[] = {
 	DXGI_ERROR_DEVICE_REMOVED,
@@ -410,7 +414,7 @@ int ColseConsole()
 	fclose(stderr);
 	return 0;
 }
-extern int gif_main(DWORD* arg);
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -419,7 +423,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 	// OpenConsole();
-
+	DWORD threadId;
+	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "man.gif");
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)GifRead, &GrbBuffer, 0, &threadId);
     // TODO: 在此放置代码。
 
     // 初始化全局字符串
@@ -434,7 +440,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WINCHAT));
-	DWORD  threadId;
 	TcpChat *tc = TcpChat::GetInstance();
 	tc->Init(DrawWindowRegon);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->Accept, tc, 0, &threadId);
@@ -520,7 +525,6 @@ int HandleCmdConnect()
 	static bool IsConnected = false;
 	if (IsConnected) {
 		SetWindowText(g_hConnBtn, TEXT("连接"));
-		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)gif_main, tc, 0, &threadId);
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->DisConnectRemoteSvr, tc, 0, &threadId);
 		IsConnected = false;
 	} else {
@@ -550,6 +554,44 @@ int HandleCmdSend()
 	if (ret > 0) AppendToMsgBrowser(msg);
 	return 0;
 }
+
+int HandleCmdLoad(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	OPENFILENAME ofn;
+	WCHAR* szFile = new WCHAR[512];
+	WCHAR* szFileTitle = new WCHAR[512];
+	memset(&ofn, 0, sizeof(ofn));
+	memset(szFile, 0, sizeof(WCHAR) * 512);
+	memset(szFileTitle, 0, sizeof(WCHAR) * 512);
+
+	ofn.lStructSize = sizeof(ofn);
+	// ofn.hwndOwner = hWnd;
+	// ofn.hInstance = yMain->m_hInst;
+	ofn.lpstrFilter = L"All File\0*.*\0";
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFile = szFile;
+	ofn.nMaxFile = sizeof(WCHAR) * 512;
+	ofn.lpstrFileTitle = szFileTitle;
+	ofn.nMaxFileTitle = sizeof(WCHAR) * 512;
+	ofn.Flags = OFN_FILEMUSTEXIST | OFN_EXPLORER;
+
+	// 按下确定按钮
+	BOOL ok = GetOpenFileName(&ofn);
+	if (ok) {
+		HWND hAvatar = GetDlgItem(g_hAvatar, IDC_AVATAR);
+		// SendMessage(hAvatar, WM_SETTEXT, NULL, (LPARAM)szFile);
+		DWORD threadId;
+		char *fileDir = wchar2char(szFile);
+		snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", fileDir);
+		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)GifRead, &GrbBuffer, 0, &threadId);
+		delete[]fileDir;
+	}
+
+	delete[]szFile;
+	delete[]szFileTitle;
+	return 0;
+}
+
 int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId = LOWORD(wParam);
@@ -562,6 +604,9 @@ int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case IDC_SEND:
 		HandleCmdSend();
+		break;
+	case IDC_LOAD:
+		HandleCmdLoad(hWnd, message, wParam, lParam);
 		break;
 	case IDM_ABOUT:
 		DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
@@ -596,9 +641,10 @@ int HandlePaintMsgCamera()
 	EndPaint(cam, &psCamera);
 	return 0;
 }
-extern unsigned char *GrbBuffer;
+
 int HandlePaintMsgAvatar()
 {
+	static int frameIdx = 0;
 	RECT rctA; // 定义一个RECT结构体，存储窗口的长宽高
 	HWND avatar = g_hAvatar;
 	PAINTSTRUCT psAvatar;
@@ -606,8 +652,10 @@ int HandlePaintMsgAvatar()
 
 	HDC hdcAvatar = BeginPaint(avatar, &psAvatar);
 	HBITMAP hBitmap;
-	TcpChat::GetInstance()->TransBitMap(hBitmap);
-	// hBitmap = CreateBitmap(200, 200, 1, 32, GrbBuffer);
+	// TcpChat::GetInstance()->TransBitMap(hBitmap);
+	hBitmap = CreateBitmap(GrbBuffer.width, GrbBuffer.height, 1, 32, GrbBuffer.frame[frameIdx]);
+	frameIdx = (++frameIdx) % (sizeof(GrbBuffer.frame) / sizeof(unsigned char*));
+	frameIdx = GrbBuffer.frame[frameIdx] == NULL ? 0 : frameIdx;
 	/* OpenClipboard(NULL);
 	EmptyClipboard();
 	SetClipboardData(CF_BITMAP, hBitmap);
@@ -676,7 +724,7 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hWnd, (HMENU)IDC_RECV_MSG, hInst, NULL);
 	g_hSendMsg = CreateWindow(TEXT("edit"), NULL, 
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
-		30, 300, 600, 80,
+		30, 300, 600, 120,
 		hWnd, (HMENU)IDC_SEND_MSG, hInst, NULL);
 
 	g_hConnBtn = CreateWindow(TEXT("button"), TEXT("连接"),
@@ -687,6 +735,10 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER,
 		650, 330, 80, 40,
 		hWnd, (HMENU)IDC_SEND, hInst, NULL);
+	g_hLoadBtn = CreateWindow(TEXT("button"), TEXT("浏览"),
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER,
+		650, 330 + 40 + 10, 80, 40,
+		hWnd, (HMENU)IDC_LOAD, hInst, NULL);
 	g_hCamera = CreateWindow(TEXT("static"), TEXT("视频:"),
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
 		710, 70, CAMERA_WIDTH, CAMERA_HEIGHT,

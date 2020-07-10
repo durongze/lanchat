@@ -153,6 +153,7 @@
     <ClInclude Include="DuplicationManager.h" />
     <ClInclude Include="FreeTypeBmp.h" />
     <ClInclude Include="getopt\getopt.h" />
+    <ClInclude Include="GifEditor.h" />
     <ClInclude Include="giflib\gif_hash.h" />
     <ClInclude Include="giflib\gif_lib.h" />
     <ClInclude Include="giflib\gif_lib_private.h" />

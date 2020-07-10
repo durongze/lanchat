@@ -3,35 +3,9 @@
 giftool.c - GIF transformation tool.
 
 ****************************************************************************/
+#include "GifEditor.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <stdbool.h>
-#include <windows.h>
-#include <iostream>
-#include <io.h>
-#include "getopt.h"
-// #include "getarg.h"
-#include "gif_lib.h"
-
-#define PROGRAM_NAME	"giftool"
-
-#define MAX_OPERATIONS	256
-#define MAX_IMAGES	2048
-#define PrintGifError(x) \
-	do{ \
-		FILE *fp = fopen("log.txt","a"); \
-		int e = GetLastError(); \
-		char buf[32] = {0}; \
-		snprintf(buf, sizeof(buf), "%d", e); \
-		fwrite(buf, strlen(buf), 1, fp); \
-		fclose(fp); \
-	} while (0)
-#define GIF_EXIT()
-
-void DumpScreen2RGBA(UINT8* GrbBuffer,
+void DumpScreen2RGBA(unsigned char *GrbBuffer,
 	ColorMapObject *ColorMap, GifRowType *ScreenBuffer, int ScreenWidth, int ScreenHeight)
 {
     int i, j;
@@ -51,7 +25,7 @@ void DumpScreen2RGBA(UINT8* GrbBuffer,
 	}
 }
 
-int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, UINT8* GrbBuffer)
+int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, unsigned char *GrbBuffer)
 {
 	if (DGifGetImageDesc(GifFile) == GIF_ERROR) {
 		PrintGifError();
@@ -96,11 +70,7 @@ int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, UINT8* GrbBu
 		exit(EXIT_FAILURE);
 	}
 	DumpScreen2RGBA(GrbBuffer, ColorMap, ScreenBuffer, GifFile->SWidth, GifFile->SHeight);
-	/* HBITMAP hBitmap = CreateBitmap(GifFile->SWidth, GifFile->SHeight, 1, 32, GrbBuffer);
-	OpenClipboard(NULL);
-	EmptyClipboard();
-	SetClipboardData(CF_BITMAP, hBitmap);
-	CloseClipboard(); */
+
 	return 0;
 }
 
@@ -132,14 +102,25 @@ int HandleExt(GifFileType *GifFile)
 	return 0;
 }
 
-unsigned char *GrbBuffer = NULL;
-
-int gif_main(DWORD *arg)
+int FreeAllFrame(GifBitMap *pGrbBuffer)
 {
-	int error;
+	int i = 0;
+	for (i = 0; i < sizeof(pGrbBuffer->frame) / sizeof(unsigned char*); i++) {
+		if (pGrbBuffer->frame[i] != NULL) {
+			free(pGrbBuffer->frame[i]);
+		}
+	}
+	memset(pGrbBuffer->frame, 0, sizeof(pGrbBuffer->frame));
+	return 0;
+}
+
+int GifRead(DWORD *arg)
+{
+	int error, frameIdx = 0;
 	GifFileType *GifFile;
-	char *fileName = "man.gif";
-	GifFile = DGifOpenFileName(fileName, &error);
+	GifBitMap *pGrbBuffer = (GifBitMap*)arg;
+	FreeAllFrame(pGrbBuffer);
+	GifFile = DGifOpenFileName(pGrbBuffer->gitdir, &error);
 	if (GifFile == NULL) {
 		PrintGifError();
 	}
@@ -171,9 +152,11 @@ int gif_main(DWORD *arg)
 		switch (RecordType) {
 			case IMAGE_DESC_RECORD_TYPE:
 				std::cout << "IMAGE_DESC_RECORD_TYPE" << std::endl;
-				GrbBuffer = (unsigned char*)malloc(GifFile->SWidth * GifFile->SHeight * 4);
-				HandleImageDesc(GifFile, ScreenBuffer, GrbBuffer);
-				delete GrbBuffer;
+				pGrbBuffer->width = GifFile->SWidth;
+				pGrbBuffer->height = GifFile->SHeight;
+				pGrbBuffer->frame[frameIdx] = (unsigned char*)malloc(GifFile->SWidth * GifFile->SHeight * 4);
+				HandleImageDesc(GifFile, ScreenBuffer, pGrbBuffer->frame[frameIdx]);
+				frameIdx += frameIdx + 1 >= sizeof(pGrbBuffer->frame) / sizeof(unsigned char*) ? -frameIdx : 1;
 				break;
 			case EXTENSION_RECORD_TYPE:
 				std::cout << "EXTENSION_RECORD_TYPE" << std::endl;
