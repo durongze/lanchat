@@ -99,7 +99,7 @@ int AppendToMsgBrowser(const TcpPackage& tp)
 		memmove(g_MsgBrowser, g_MsgBrowser + msgLen / 2, msgLen / 2);
 	}
 	msgLen = lstrlen(g_MsgBrowser);
-	memcpy(g_MsgBrowser + msgLen, tp.buf, strlen(tp.buf));
+	memcpy(g_MsgBrowser + msgLen, tp.buf, lstrlen((wchar_t*)tp.buf) * 2);
 	SetWindowText(g_hRecvMsg, g_MsgBrowser);
 	return 0;
 }
