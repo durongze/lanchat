@@ -114,16 +114,8 @@ int FreeAllFrame(GifBitMap *pGrbBuffer)
 	return 0;
 }
 
-int GifRead(DWORD *arg)
+GifRowType *CreateScreenBuffer(GifFileType *GifFile)
 {
-	int error, frameIdx = 0;
-	GifFileType *GifFile;
-	GifBitMap *pGrbBuffer = (GifBitMap*)arg;
-	FreeAllFrame(pGrbBuffer);
-	GifFile = DGifOpenFileName(pGrbBuffer->gitdir, &error);
-	if (GifFile == NULL) {
-		PrintGifError();
-	}
 	GifRowType *ScreenBuffer = (GifRowType *)malloc(GifFile->SHeight * sizeof(GifRowType *));
 	if (ScreenBuffer == NULL) {
 		GIF_EXIT("Failed to allocate memory required, aborted.");
@@ -143,6 +135,19 @@ int GifRead(DWORD *arg)
 		}
 		memcpy(ScreenBuffer[i], ScreenBuffer[0], Size);
 	}
+	return ScreenBuffer;
+}
+
+int GifRead(DWORD *arg)
+{
+	int error, frameIdx = 0;
+	GifBitMap *pGrbBuffer = (GifBitMap*)arg;
+	FreeAllFrame(pGrbBuffer);
+	GifFileType *GifFile = DGifOpenFileName(pGrbBuffer->gitdir, &error);
+	if (GifFile == NULL) {
+		PrintGifError();
+	}
+	GifRowType *ScreenBuffer = CreateScreenBuffer(GifFile);
 	GifRecordType RecordType;
 	do {
 		if (DGifGetRecordType(GifFile, &RecordType) == GIF_ERROR) {
@@ -172,4 +177,69 @@ int GifRead(DWORD *arg)
 	return 0;
 }
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+
+// #include "getarg.h"
+#include "gif_lib.h"
+
+#define PROGRAM_NAME	"gifsponge"
+
+int GifWrite(DWORD *arg)
+{
+	int	i, ErrorCode;
+	GifFileType *GifFileIn = (GifFileType *)NULL;
+	GifFileType *GifFileOut = (GifFileType *)NULL;
+
+	if ((GifFileIn = DGifOpenFileHandle(0, &ErrorCode)) == NULL) {
+		PrintGifError(ErrorCode);
+		exit(EXIT_FAILURE);
+	}
+	if (DGifSlurp(GifFileIn) == GIF_ERROR) {
+		PrintGifError(GifFileIn->Error);
+		exit(EXIT_FAILURE);
+	}
+	if ((GifFileOut = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+		PrintGifError(ErrorCode);
+		exit(EXIT_FAILURE);
+	}
+
+	/*
+	* Your operations on in-core structures go here.
+	* This code just copies the header and each image from the incoming file.
+	*/
+	GifFileOut->SWidth = GifFileIn->SWidth;
+	GifFileOut->SHeight = GifFileIn->SHeight;
+	GifFileOut->SColorResolution = GifFileIn->SColorResolution;
+	GifFileOut->SBackGroundColor = GifFileIn->SBackGroundColor;
+	if (GifFileIn->SColorMap) {
+		GifFileOut->SColorMap = GifMakeMapObject(
+			GifFileIn->SColorMap->ColorCount,
+			GifFileIn->SColorMap->Colors);
+	}
+	else {
+		GifFileOut->SColorMap = NULL;
+	}
+
+	for (i = 0; i < GifFileIn->ImageCount; i++)
+		(void) GifMakeSavedImage(GifFileOut, &GifFileIn->SavedImages[i]);
+
+	/*
+	* Note: don't do DGifCloseFile early, as this will
+	* deallocate all the memory containing the GIF data!
+	*
+	* Further note: EGifSpew() doesn't try to validity-check any of this
+	* data; it's *your* responsibility to keep your changes consistent.
+	* Caveat hacker!
+	*/
+	if (EGifSpew(GifFileOut) == GIF_ERROR)
+		PrintGifError(GifFileOut->Error);
+
+	if (DGifCloseFile(GifFileIn, &ErrorCode) == GIF_ERROR)
+		PrintGifError(ErrorCode);
+
+	return 0;
+}
 /* end */

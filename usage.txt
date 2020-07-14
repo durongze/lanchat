@@ -1,0 +1,58 @@
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gifbuild 1:/home/du/code/giflib/util/.libs/gifbuild 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gifbuild 1:/home/du/code/giflib/util/.libs/gifbuild 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gifbuild 1:/home/du/code/giflib/util/.libs/gifbuild 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/fire.gif 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/gifgrid.gif 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/porsche.gif 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/solid2.gif 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/treescap.gif 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/treescap-interlaced.gif 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/welcome2.gif 
+/home/du/code/giflib/util/.libs/gif2rgb 5:/home/du/code/giflib/util/.libs/gif2rgb -1 -o /tmp/regress ../pic/x-trans.gif 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gifbuild 1:/home/du/code/giflib/util/.libs/gifbuild 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gifbuild 1:/home/du/code/giflib/util/.libs/gifbuild 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gifclrmp 1:/home/du/code/giflib/util/.libs/gifclrmp 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gifecho 3:/home/du/code/giflib/util/.libs/gifecho -t foobar 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giffilter 1:/home/du/code/giflib/util/.libs/giffilter 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giffilter 1:/home/du/code/giflib/util/.libs/giffilter 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giffilter 1:/home/du/code/giflib/util/.libs/giffilter 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giffilter 1:/home/du/code/giflib/util/.libs/giffilter 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giffilter 1:/home/du/code/giflib/util/.libs/giffilter 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giffilter 1:/home/du/code/giflib/util/.libs/giffilter 
+/home/du/code/giflib/util/.libs/giffix 1:/home/du/code/giflib/util/.libs/giffix 
+/home/du/code/giflib/util/.libs/gifbuild 2:/home/du/code/giflib/util/.libs/gifbuild -d 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/gifsponge 1:/home/du/code/giflib/util/.libs/gifsponge 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/gifsponge 1:/home/du/code/giflib/util/.libs/gifsponge 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/gifsponge 1:/home/du/code/giflib/util/.libs/gifsponge 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/gifsponge 1:/home/du/code/giflib/util/.libs/gifsponge 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/gifsponge 1:/home/du/code/giflib/util/.libs/gifsponge 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/gifsponge 1:/home/du/code/giflib/util/.libs/gifsponge 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/gifsponge 1:/home/du/code/giflib/util/.libs/gifsponge 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giftext 1:/home/du/code/giflib/util/.libs/giftext 
+/home/du/code/giflib/util/.libs/giftool 1:/home/du/code/giflib/util/.libs/giftool 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giftool 3:/home/du/code/giflib/util/.libs/giftool -i on 
+/home/du/code/giflib/util/.libs/gif2rgb 1:/home/du/code/giflib/util/.libs/gif2rgb 
+/home/du/code/giflib/util/.libs/giftool 3:/home/du/code/giflib/util/.libs/giftool -i off 

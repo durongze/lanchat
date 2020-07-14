@@ -39,5 +39,6 @@ typedef struct {
 }GifBitMap;
 
 int GifRead(DWORD *arg);
+int GifWrite(DWORD *arg);
 
 #endif

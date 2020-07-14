@@ -409,7 +409,7 @@ int OpenConsole()
 	return 0;
 }
 
-int ColseConsole()
+int CloseConsole()
 {
 	fclose(stdin);
 	fclose(stdout);
@@ -424,10 +424,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-	// OpenConsole();
-	DWORD threadId;
-	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "man.gif");
-	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)GifRead, &GrbBuffer, 0, &threadId);
+	OpenConsole();
+	GifWrite(NULL);
+	CloseConsole();
     // TODO: 在此放置代码。
 
     // 初始化全局字符串
@@ -442,6 +441,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WINCHAT));
+	DWORD threadId;
 	TcpChat *tc = TcpChat::GetInstance();
 	tc->Init(DrawWindowRegon);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->Accept, tc, 0, &threadId);

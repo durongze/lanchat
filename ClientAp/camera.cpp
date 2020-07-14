@@ -221,7 +221,6 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
 	setCameraAndMediaRecorder(memdiaRecorder);
 	// setCameraSurface(videoSurface);
     connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), this, SLOT(setExposureCompensation(int)));
-
     ui->captureWidget->setTabEnabled(0, (camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
     ui->captureWidget->setTabEnabled(1, (camera->isCaptureModeSupported(QCamera::CaptureVideo)));
 	// ui->captureWidget->installEventFilter(this);
