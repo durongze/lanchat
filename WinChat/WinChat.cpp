@@ -35,6 +35,7 @@ HWND g_hRecvMsg;
 HWND g_hConnBtn;
 HWND g_hSendBtn;
 HWND g_hLoadBtn;
+HWND g_hRecordBtn;
 HWND g_hCamera;
 HWND g_hAvatar;
 HWND g_hMainWindow;
@@ -603,6 +604,23 @@ int HandleCmdLoad(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+int HandleCmdRecord(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	wchar_t BtnTxt[MAX_PATH] = { 0 };
+	int BtnTxtLen = sizeof(BtnTxt);
+	GetWindowText(g_hRecordBtn, BtnTxt, BtnTxtLen);
+	if (memcmp(TEXT("停止"), BtnTxt, lstrlen(TEXT("停止"))) == 0) {
+		SetRecord(MAX_FRAME_NUM);
+		SetWindowText(g_hRecordBtn, TEXT("录制"));
+
+	}
+	else {
+		SetRecord(0);
+		SetWindowText(g_hRecordBtn, TEXT("停止"));
+	}
+	return 0;
+}
+
 int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId = LOWORD(wParam);
@@ -618,6 +636,9 @@ int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case IDC_LOAD:
 		HandleCmdLoad(hWnd, message, wParam, lParam);
+		break;
+	case IDC_RECORD:
+		HandleCmdRecord(hWnd, message, wParam, lParam);
 		break;
 	case IDM_ABOUT:
 		DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
@@ -750,6 +771,10 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER,
 		650, 330 + 40 + 10, 80, 40,
 		hWnd, (HMENU)IDC_LOAD, hInst, NULL);
+	g_hRecordBtn = CreateWindow(TEXT("button"), TEXT("录制"),
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER,
+		RIGHT_CAMERA_X + CAMERA_WIDTH - 80, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10, 80, 40,
+		hWnd, (HMENU)IDC_RECORD, hInst, NULL);
 	g_hCamera = CreateWindow(TEXT("static"), TEXT("视频:"),
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
 		RIGHT_CAMERA_X, RIGHT_CAMERA_Y, CAMERA_WIDTH, CAMERA_HEIGHT,

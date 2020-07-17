@@ -8,11 +8,13 @@
 #include <stdbool.h>
 #include <windows.h>
 #include <iostream>
+#include <string>
 #include <io.h>
 #include "getopt.h"
 // #include "getarg.h"
 #include "gif_lib.h"
 
+#define MAX_FRAME_NUM 200
 #define PROGRAM_NAME	"giftool"
 
 #define GIF_WIDTH 320
@@ -39,6 +41,8 @@ typedef struct {
 }GifBitMap;
 
 int GifRead(DWORD *arg);
+int SetRecord(int frameIdx);
+int GetRecord();
 int GifWrite(DWORD *arg, int Width, int Height);
 
 #endif

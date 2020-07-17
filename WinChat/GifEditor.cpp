@@ -5,8 +5,8 @@ giftool.c - GIF transformation tool.
 ****************************************************************************/
 #include "GifEditor.h"
 #include <time.h>
-#include <string>
-#include <iostream>
+
+static int g_frameIdx = 0;
 
 void DumpScreen2RGBA(unsigned char *GrbBuffer,
 	ColorMapObject *ColorMap, GifRowType *ScreenBuffer, int ScreenWidth, int ScreenHeight)
@@ -183,23 +183,13 @@ int GifRead(DWORD *arg)
 	return 0;
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-
-// #include "getarg.h"
-#include "gif_lib.h"
-
-#define PROGRAM_NAME	"gifsponge"
-
 int GifWrite(DWORD *arg, int Width, int Height)
 {
 	uint8_t *bits = (uint8_t*)arg;
 	int errorStatus;
-	static int frameIdx = 0;
+
 	static GifFileType *pGifFile = NULL;
-	if (pGifFile == NULL && frameIdx == 0) {
+	if (pGifFile == NULL && g_frameIdx == 0) {
 		pGifFile = EGifOpenFileName((std::to_string(time(0)) + ".gif").c_str(), 0, &errorStatus);
 		if (pGifFile == NULL) {
 			return 1;
@@ -260,10 +250,21 @@ int GifWrite(DWORD *arg, int Width, int Height)
 		EGifPutPixel(pGifFile, (uint8_t)index);
 	}
 
-	if (pGifFile != NULL && frameIdx++ > 200) {
+	if (pGifFile != NULL && g_frameIdx++ > MAX_FRAME_NUM) {
 		EGifCloseFile(pGifFile, &errorStatus);
 		pGifFile = NULL;
-		frameIdx = 0;
+		g_frameIdx = 0;
 	}
 	return 0;
+}
+
+int SetRecord(int frameIdx)
+{
+	g_frameIdx = frameIdx;
+	return frameIdx;
+}
+
+int GetRecord()
+{
+	return g_frameIdx;
 }

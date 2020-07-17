@@ -21,10 +21,11 @@
 #define IDC_PORT            116
 #define IDC_CAMERA          117 
 #define IDC_AVATAR          118 
-#define IDC_LOAD          119 
-#define IDC_MYICON				2
+#define IDC_LOAD            119 
+#define IDC_RECORD          120
+#define IDC_MYICON			2
 #ifndef IDC_STATIC
-#define IDC_STATIC				-1
+#define IDC_STATIC			-1
 #endif
 // 新对象的下一组默认值
 //
