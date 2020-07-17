@@ -115,6 +115,7 @@ int DrawWindowRegon(TcpPackage *tp)
 		if (hbitmap == NULL) {
 			return -1;
 		}
+		GifWrite((DWORD*)bits, bi->biWidth, bi->biHeight);
 		WriteWordToBmp(*bi, bits);
 		DeleteObject(hbitmap);
 		RECT regonCam = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
@@ -424,9 +425,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-	OpenConsole();
-	GifWrite(NULL);
-	CloseConsole();
+	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "china.gif");
+	// OpenConsole();
+	GifRead((DWORD*)&GrbBuffer);
+	// CloseConsole();
     // TODO: 在此放置代码。
 
     // 初始化全局字符串
@@ -576,7 +578,7 @@ int HandleCmdLoad(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	ofn.lpstrFileTitle = szFileTitle;
 	ofn.nMaxFileTitle = sizeof(WCHAR) * 512;
 	ofn.Flags = OFN_FILEMUSTEXIST | OFN_EXPLORER;
-
+	EnableWindow(g_hLoadBtn, false);
 	// 按下确定按钮
 	BOOL ok = GetOpenFileName(&ofn);
 	if (ok) {
@@ -587,6 +589,7 @@ int HandleCmdLoad(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", fileDir);
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)GifRead, &GrbBuffer, 0, &threadId);
 		delete[]fileDir;
+		EnableWindow(g_hLoadBtn, true);
 	}
 
 	delete[]szFile;

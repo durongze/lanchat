@@ -159,6 +159,7 @@ int WriteWordToBmpByFace(FT_Face& pFTFace, BITMAPINFOHEADER& strInfo, IMAGEDATA*
 	wchar_t user[MAX_PATH] = { 0 };
 	DWORD userLen = sizeof(user);
 	GenUtf8ByChar(("麦思"), pUser, pUserLen);
+	if (pUser == NULL) return -1;
 	// GetUserName(user, &userLen);
 	//字体偏移量，用做字体显示
 	int bitmap_width_sum = rand() % 2 * 200;

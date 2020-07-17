@@ -4,6 +4,9 @@ giftool.c - GIF transformation tool.
 
 ****************************************************************************/
 #include "GifEditor.h"
+#include <time.h>
+#include <string>
+#include <iostream>
 
 void DumpScreen2RGBA(unsigned char *GrbBuffer,
 	ColorMapObject *ColorMap, GifRowType *ScreenBuffer, int ScreenWidth, int ScreenHeight)
@@ -24,7 +27,7 @@ void DumpScreen2RGBA(unsigned char *GrbBuffer,
 		}
 	}
 }
-
+ColorMapObject g_pColorMap = {0};
 int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, unsigned char *GrbBuffer)
 {
 	if (DGifGetImageDesc(GifFile) == GIF_ERROR) {
@@ -69,6 +72,8 @@ int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, unsigned cha
 		fprintf(stderr, "Gif Image does not have a colormap\n");
 		exit(EXIT_FAILURE);
 	}
+	g_pColorMap = *ColorMap;
+	memcpy(g_pColorMap.Colors, ColorMap->Colors, ColorMap->ColorCount * sizeof(GifColorType));
 	DumpScreen2RGBA(GrbBuffer, ColorMap, ScreenBuffer, GifFile->SWidth, GifFile->SHeight);
 
 	return 0;
@@ -146,6 +151,7 @@ int GifRead(DWORD *arg)
 	GifFileType *GifFile = DGifOpenFileName(pGrbBuffer->gitdir, &error);
 	if (GifFile == NULL) {
 		PrintGifError();
+		return 0;
 	}
 	GifRowType *ScreenBuffer = CreateScreenBuffer(GifFile);
 	GifRecordType RecordType;
@@ -187,59 +193,78 @@ int GifRead(DWORD *arg)
 
 #define PROGRAM_NAME	"gifsponge"
 
-int GifWrite(DWORD *arg)
+int GifWrite(DWORD *arg, int Width, int Height)
 {
-	int	i, ErrorCode;
-	GifFileType *GifFileIn = (GifFileType *)NULL;
-	GifFileType *GifFileOut = (GifFileType *)NULL;
+	uint8_t *bits = (uint8_t*)arg;
+	int errorStatus;
+	static int frameIdx = 0;
+	static GifFileType *pGifFile = NULL;
+	if (pGifFile == NULL && frameIdx == 0) {
+		pGifFile = EGifOpenFileName((std::to_string(time(0)) + ".gif").c_str(), 0, &errorStatus);
+		if (pGifFile == NULL) {
+			return 1;
+		}
+		pGifFile->SWidth = Width;
+		pGifFile->SHeight = Height;
+		EGifSetGifVersion(pGifFile, true);
 
-	if ((GifFileIn = DGifOpenFileHandle(0, &ErrorCode)) == NULL) {
-		PrintGifError(ErrorCode);
-		exit(EXIT_FAILURE);
-	}
-	if (DGifSlurp(GifFileIn) == GIF_ERROR) {
-		PrintGifError(GifFileIn->Error);
-		exit(EXIT_FAILURE);
-	}
-	if ((GifFileOut = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
-		PrintGifError(ErrorCode);
-		exit(EXIT_FAILURE);
 	}
 
-	/*
-	* Your operations on in-core structures go here.
-	* This code just copies the header and each image from the incoming file.
-	*/
-	GifFileOut->SWidth = GifFileIn->SWidth;
-	GifFileOut->SHeight = GifFileIn->SHeight;
-	GifFileOut->SColorResolution = GifFileIn->SColorResolution;
-	GifFileOut->SBackGroundColor = GifFileIn->SBackGroundColor;
-	if (GifFileIn->SColorMap) {
-		GifFileOut->SColorMap = GifMakeMapObject(
-			GifFileIn->SColorMap->ColorCount,
-			GifFileIn->SColorMap->Colors);
+	ColorMapObject *pColorMap = &g_pColorMap;
+	EGifPutScreenDesc(pGifFile, Width, Height, 8, 0, pColorMap);
+	// （3)写入graphic control extension块，此块可以设定动画速度和透明色
+	static const GraphicsControlBlock gcb = { DISPOSE_DO_NOT, false, 1, NO_TRANSPARENT_COLOR };
+	static const GifByteType gcbLen = 4;
+	static GifByteType gcbBytes[gcbLen];
+	EGifGCBToExtension(&gcb, gcbBytes);
+	EGifPutExtension(pGifFile, GRAPHICS_EXT_FUNC_CODE, gcbLen, gcbBytes);
+
+	static const GifByteType aeLen = 11;
+	static const char *aeBytes = { "NETSCAPE2.0" };
+	static const GifByteType aeSubLen = 3;
+	static GifByteType aeSubBytes[aeSubLen];
+	aeSubBytes[0] = 0x01;
+	aeSubBytes[1] = 0x00; // byte[1]是低位，byte[2]是高位，组成一个无符号16位数，决定动画循环次数
+	aeSubBytes[2] = 0x00;
+	EGifPutExtensionLeader(pGifFile, APPLICATION_EXT_FUNC_CODE);
+	EGifPutExtensionBlock(pGifFile, aeLen, aeBytes);
+	EGifPutExtensionBlock(pGifFile, aeSubLen, aeSubBytes);
+	EGifPutExtensionTrailer(pGifFile);
+
+	// 写入image descriptor块，因为不使用局部颜色表，传入nullptr，而不传pColorMap
+	EGifPutImageDesc(pGifFile, 0, 0, pGifFile->SWidth, pGifFile->SHeight, false, nullptr);
+	GifColorType *pCm = pColorMap->Colors; // color map
+
+	// 写入image data
+	for (int k = 0; k < pGifFile->SWidth * pGifFile->SHeight; ++k) {
+		uint8_t index = 0;
+		int mindis = 1 << 30;
+		uint8_t rr = *(bits + k * 4 + 0);
+		uint8_t gg = *(bits + k * 4 + 1);
+		uint8_t bb = *(bits + k * 4 + 2);
+
+		// 将颜色匹配到颜色表的索引颜色 256色
+		for (int i = 0; i < (1 << 8); i++) {
+			int dis =
+				(rr - (*(pCm + i)).Red)*(rr - (*(pCm + i)).Red) +
+				(gg - (*(pCm + i)).Green)*(gg - (*(pCm + i)).Green) +
+				(bb - (*(pCm + i)).Blue)*(bb - (*(pCm + i)).Blue);
+			if (dis < mindis) {
+				mindis = dis;
+				index = i;
+			}
+			if (dis == 0) {
+				index = i;
+				break;
+			}
+		}
+		EGifPutPixel(pGifFile, (uint8_t)index);
 	}
-	else {
-		GifFileOut->SColorMap = NULL;
+
+	if (pGifFile != NULL && frameIdx++ > 200) {
+		EGifCloseFile(pGifFile, &errorStatus);
+		pGifFile = NULL;
+		frameIdx = 0;
 	}
-
-	for (i = 0; i < GifFileIn->ImageCount; i++)
-		(void) GifMakeSavedImage(GifFileOut, &GifFileIn->SavedImages[i]);
-
-	/*
-	* Note: don't do DGifCloseFile early, as this will
-	* deallocate all the memory containing the GIF data!
-	*
-	* Further note: EGifSpew() doesn't try to validity-check any of this
-	* data; it's *your* responsibility to keep your changes consistent.
-	* Caveat hacker!
-	*/
-	if (EGifSpew(GifFileOut) == GIF_ERROR)
-		PrintGifError(GifFileOut->Error);
-
-	if (DGifCloseFile(GifFileIn, &ErrorCode) == GIF_ERROR)
-		PrintGifError(ErrorCode);
-
 	return 0;
 }
-/* end */
