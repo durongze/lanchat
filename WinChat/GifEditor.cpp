@@ -207,7 +207,6 @@ int GifWrite(DWORD *arg, int Width, int Height)
 		pGifFile->SWidth = Width;
 		pGifFile->SHeight = Height;
 		EGifSetGifVersion(pGifFile, true);
-
 	}
 
 	ColorMapObject *pColorMap = &g_pColorMap;

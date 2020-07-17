@@ -18,6 +18,12 @@
 
 #define MAX_LOADSTRING 100
 
+#define RIGHT_CAMERA_X 750
+#define RIGHT_CAMERA_Y 70
+
+#define AVATAR_WIDTH   112
+#define AVATAR_HEIGHT  112 
+
 // 全局变量: 
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
@@ -118,10 +124,10 @@ int DrawWindowRegon(TcpPackage *tp)
 		GifWrite((DWORD*)bits, bi->biWidth, bi->biHeight);
 		WriteWordToBmp(*bi, bits);
 		DeleteObject(hbitmap);
-		RECT regonCam = { 710, 70, 710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT };
+		RECT regonCam = { RIGHT_CAMERA_X, RIGHT_CAMERA_Y, RIGHT_CAMERA_X + CAMERA_WIDTH, RIGHT_CAMERA_Y + CAMERA_HEIGHT };
 		RedrawWindow(g_hMainWindow, &regonCam, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
-		RECT regonAvatar = { 710 + CAMERA_WIDTH - 112, 70 + CAMERA_HEIGHT + 10,  710 + CAMERA_WIDTH, 70 + CAMERA_HEIGHT + 10 + 112 };
+		RECT regonAvatar = { RIGHT_CAMERA_X, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10,  RIGHT_CAMERA_X + AVATAR_WIDTH, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10 + AVATAR_HEIGHT };
 		RedrawWindow(g_hMainWindow, &regonAvatar, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
 	} else {
@@ -746,11 +752,11 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hWnd, (HMENU)IDC_LOAD, hInst, NULL);
 	g_hCamera = CreateWindow(TEXT("static"), TEXT("视频:"),
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
-		710, 70, CAMERA_WIDTH, CAMERA_HEIGHT,
+		RIGHT_CAMERA_X, RIGHT_CAMERA_Y, CAMERA_WIDTH, CAMERA_HEIGHT,
 		hWnd, (HMENU)IDC_CAMERA, hInst, NULL);
 	g_hAvatar = CreateWindow(TEXT("static"), TEXT("头像:"),
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
-		710 + CAMERA_WIDTH - 112, 70 + CAMERA_HEIGHT + 10, 112, 112,
+		RIGHT_CAMERA_X, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10, AVATAR_WIDTH, AVATAR_HEIGHT,
 		hWnd, (HMENU)IDC_AVATAR, hInst, NULL);
 
 	SetWindowText(g_hIpAddr, TEXT("127.0.0.1"));
