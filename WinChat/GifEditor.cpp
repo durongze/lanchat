@@ -187,8 +187,8 @@ int GifWrite(DWORD *arg, int Width, int Height)
 {
 	uint8_t *bits = (uint8_t*)arg;
 	int errorStatus;
-
 	static GifFileType *pGifFile = NULL;
+	ColorMapObject *pColorMap = &g_pColorMap;
 	if (pGifFile == NULL && g_frameIdx == 0) {
 		pGifFile = EGifOpenFileName((std::to_string(time(0)) + ".gif").c_str(), 0, &errorStatus);
 		if (pGifFile == NULL) {
@@ -197,28 +197,27 @@ int GifWrite(DWORD *arg, int Width, int Height)
 		pGifFile->SWidth = Width;
 		pGifFile->SHeight = Height;
 		EGifSetGifVersion(pGifFile, true);
+
+		EGifPutScreenDesc(pGifFile, Width, Height, 8, 0, pColorMap);
+		// （3)写入graphic control extension块，此块可以设定动画速度和透明色
+		static const GraphicsControlBlock gcb = { DISPOSE_DO_NOT, false, 1, NO_TRANSPARENT_COLOR };
+		static const GifByteType gcbLen = 4;
+		static GifByteType gcbBytes[gcbLen];
+		EGifGCBToExtension(&gcb, gcbBytes);
+		EGifPutExtension(pGifFile, GRAPHICS_EXT_FUNC_CODE, gcbLen, gcbBytes);
+
+		static const GifByteType aeLen = 11;
+		static const char *aeBytes = { "NETSCAPE2.0" };
+		static const GifByteType aeSubLen = 3;
+		static GifByteType aeSubBytes[aeSubLen];
+		aeSubBytes[0] = 0x01;
+		aeSubBytes[1] = 0x00; // byte[1]是低位，byte[2]是高位，组成一个无符号16位数，决定动画循环次数
+		aeSubBytes[2] = 0x00;
+		EGifPutExtensionLeader(pGifFile, APPLICATION_EXT_FUNC_CODE);
+		EGifPutExtensionBlock(pGifFile, aeLen, aeBytes);
+		EGifPutExtensionBlock(pGifFile, aeSubLen, aeSubBytes);
+		EGifPutExtensionTrailer(pGifFile);
 	}
-
-	ColorMapObject *pColorMap = &g_pColorMap;
-	EGifPutScreenDesc(pGifFile, Width, Height, 8, 0, pColorMap);
-	// （3)写入graphic control extension块，此块可以设定动画速度和透明色
-	static const GraphicsControlBlock gcb = { DISPOSE_DO_NOT, false, 1, NO_TRANSPARENT_COLOR };
-	static const GifByteType gcbLen = 4;
-	static GifByteType gcbBytes[gcbLen];
-	EGifGCBToExtension(&gcb, gcbBytes);
-	EGifPutExtension(pGifFile, GRAPHICS_EXT_FUNC_CODE, gcbLen, gcbBytes);
-
-	static const GifByteType aeLen = 11;
-	static const char *aeBytes = { "NETSCAPE2.0" };
-	static const GifByteType aeSubLen = 3;
-	static GifByteType aeSubBytes[aeSubLen];
-	aeSubBytes[0] = 0x01;
-	aeSubBytes[1] = 0x00; // byte[1]是低位，byte[2]是高位，组成一个无符号16位数，决定动画循环次数
-	aeSubBytes[2] = 0x00;
-	EGifPutExtensionLeader(pGifFile, APPLICATION_EXT_FUNC_CODE);
-	EGifPutExtensionBlock(pGifFile, aeLen, aeBytes);
-	EGifPutExtensionBlock(pGifFile, aeSubLen, aeSubBytes);
-	EGifPutExtensionTrailer(pGifFile);
 
 	// 写入image descriptor块，因为不使用局部颜色表，传入nullptr，而不传pColorMap
 	EGifPutImageDesc(pGifFile, 0, 0, pGifFile->SWidth, pGifFile->SHeight, false, nullptr);
