@@ -270,7 +270,7 @@ int PaintLine(FT_Vector start, FT_Vector end)
 	}
 	// QPainter painter;
 	// QPen pen(RandColor());
-	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
+	HPEN pen = CreatePen(PS_DASH, 0, RGB(155, 150, 0));
 	float startX = int26p6_to_float(start.x);
 	float startY = -int26p6_to_float(start.y);
 	float fEndX = int26p6_to_float(end.x);
@@ -295,7 +295,7 @@ int PaintQuadPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2)
 	//QPen pen(RandColor());
 	//QPainterPath path;
 	POINT apt[3];
-	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
+	HPEN pen = CreatePen(PS_DASH, 0, RGB(0, 0, 255));
 	float startX = int26p6_to_float(start.x);
 	float startY = -int26p6_to_float(start.y);
 	float x1 = int26p6_to_float(vx1.x);
@@ -325,7 +325,7 @@ int PaintCubicPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2, FT_Vector vx3)
 	// QPen pen(RandColor());
 	// QPainterPath path;
 	POINT apt[4];
-	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
+	HPEN pen = CreatePen(PS_DASH, 0, RGB(0, 255, 0));
 	float startX = int26p6_to_float(start.x);
 	float startY = -int26p6_to_float(start.y);
 	float x1 = int26p6_to_float(vx1.x);
