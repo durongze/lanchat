@@ -227,3 +227,247 @@ int WordInsertToBmp(char *strFile, char *dstFile)
 	SaveBmpFile(dstFile, strHead, strInfo, arrayColor);
 	return 0;
 }
+
+float int26p6_to_float(long v)
+{
+	return (float)v;
+}
+
+HDC g_hdc = NULL;
+
+HDC GetHdc()
+{
+	return g_hdc;
+}
+
+void SetHdc(HDC hdc)
+{
+	g_hdc = hdc;
+}
+
+POINT FtVectorToPoint(FT_Vector ftv)
+{
+	POINT p = { ftv.x, ftv.y };
+	return p;
+}
+
+int PaintBezier(HDC hdc, POINT apt[])
+{
+	//调用系统的绘制贝塞尔函数
+	PolyBezier(hdc, apt, 4);
+	MoveToEx(hdc, apt[0].x, apt[0].y, NULL);
+	LineTo(hdc, apt[1].x, apt[1].y);
+	MoveToEx(hdc, apt[2].x, apt[2].y, NULL);
+	LineTo(hdc, apt[3].x, apt[3].y);
+	return 0;
+}
+
+int PaintLine(FT_Vector start, FT_Vector end)
+{
+	if (GetHdc() == NULL) {
+		return 0;
+	}
+	// QPainter painter;
+	// QPen pen(RandColor());
+	POINT apt[4];
+	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
+	float startX = int26p6_to_float(start.x);
+	float startY = -int26p6_to_float(start.y);
+	float fEndX = int26p6_to_float(end.x);
+	float fEndY = -int26p6_to_float(end.y);
+
+	// painter.setPen(pen);
+	// painter.drawLine(startX, startY, fEndX, fEndY);
+
+	apt[0] = FtVectorToPoint(start);
+	apt[1] = FtVectorToPoint(end);
+	apt[2] = FtVectorToPoint(start);
+	apt[3] = FtVectorToPoint(end);
+	SelectObject(GetHdc(), pen);
+	PaintBezier(GetHdc(), apt);
+	return 0;
+}
+
+int PaintQuadPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2)
+{
+	if (GetHdc() == NULL) {
+		return 0;
+	}
+	//QPainter painter;
+	//QPen pen(RandColor());
+	//QPainterPath path;
+	POINT apt[4];
+	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
+	float startX = int26p6_to_float(start.x);
+	float startY = -int26p6_to_float(start.y);
+	float x1 = int26p6_to_float(vx1.x);
+	float y1 = -int26p6_to_float(vx1.y);
+	float x2 = int26p6_to_float(vx2.x);
+	float y2 = -int26p6_to_float(vx2.y);
+
+	// painter.setPen(pen);
+	// path.moveTo(startX, startY);
+	// path.quadTo(x1, y1, x2, y2);
+	// painter.drawPath(path);
+	apt[0] = FtVectorToPoint(start);
+	apt[1] = FtVectorToPoint(vx1);
+	apt[2] = FtVectorToPoint(start);
+	apt[3] = FtVectorToPoint(vx2);
+	SelectObject(GetHdc(), pen);
+	PaintBezier(GetHdc(), apt);
+	return 0;
+}
+
+int PaintCubicPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2, FT_Vector vx3)
+{
+	if (GetHdc() == NULL) {
+		return 0;
+	}
+	// QPainter painter;
+	// QPen pen(RandColor());
+	// QPainterPath path;
+	POINT apt[4];
+	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
+	float startX = int26p6_to_float(start.x);
+	float startY = -int26p6_to_float(start.y);
+	float x1 = int26p6_to_float(vx1.x);
+	float y1 = -int26p6_to_float(vx1.y);
+	float x2 = int26p6_to_float(vx2.x);
+	float y2 = -int26p6_to_float(vx2.y);
+	float x3 = int26p6_to_float(vx3.x);
+	float y3 = -int26p6_to_float(vx3.y);
+
+	//painter.setPen(pen);
+	//path.moveTo(startX, startY);
+	//path.cubicTo(x1, y1, x2, y2, x3, y3);
+	//painter.drawPath(path);
+	apt[0] = FtVectorToPoint(start);
+	apt[1] = FtVectorToPoint(vx1);
+	apt[2] = FtVectorToPoint(vx2);
+	apt[3] = FtVectorToPoint(vx3);
+	SelectObject(GetHdc(), pen);
+	PaintBezier(GetHdc(), apt);
+	return 0;
+}
+
+int PaintConic(FT_Vector *&point, FT_Vector* limit, FT_Vector& v_s,  FT_Vector v_e, char*& tags)
+{
+	FT_Vector v_control;
+	v_control.x = point->x;
+	v_control.y = point->y;
+	while (point < limit)
+	{
+		FT_Vector vec;
+		FT_Vector v_middle;
+		point++;
+		tags++;
+		char tag = FT_CURVE_TAG(tags[0]);
+		vec.x = point->x;
+		vec.y = point->y;
+		if (tag == FT_CURVE_TAG_ON)	{
+			PaintQuadPath(v_s, v_control, vec);
+			v_s = vec;
+			return 0;
+		}
+		if (tag != FT_CURVE_TAG_CONIC) {
+			return -1;
+		}
+		v_middle.x = (v_control.x + vec.x) / 2;
+		v_middle.y = (v_control.y + vec.y) / 2;
+		PaintQuadPath(v_s, v_control, v_middle);
+		v_s = v_middle;
+		v_control = vec;
+	}
+	PaintQuadPath(v_s, v_control, v_e);
+	v_s = v_e;
+	return -2;
+}
+
+int PaintCubic(FT_Vector *&point, FT_Vector* limit, FT_Vector& v_s, FT_Vector v_e, char*& tags)
+{
+	FT_Vector vec1, vec2;
+	if (point + 1 > limit || FT_CURVE_TAG(tags[1]) != FT_CURVE_TAG_CUBIC)
+	{
+		return - 1;
+	}
+	vec1.x = point[0].x;
+	vec1.y = point[0].y;
+	vec2.x = point[1].x;
+	vec2.y = point[1].y;
+	point += 2;
+	tags += 2;
+	if (point <= limit)
+	{
+		PaintCubicPath(v_s, vec1, vec2, *point);
+		v_s = *point;
+		return 0;
+	}
+	PaintCubicPath(v_s, vec1, vec2, v_e);
+	v_s = v_e;
+	return -2;
+}
+
+
+int PaintWord(FT_Face& face)
+{
+	FT_GlyphSlot pGlyphSlot = face->glyph;
+	FT_Outline* outline = &pGlyphSlot->outline;
+	//QPainter painter(this);
+	//painter.translate(400, 400);
+	FT_Vector* point;
+	FT_Vector* limit;
+	char* tags;
+	FT_Vector  v_last;
+	FT_Vector  v_control;
+	FT_Vector  v_start;
+	int ret;
+	int first = 0;
+	for (int n = 0; n < outline->n_contours; n++)
+	{
+		int  last = outline->contours[n];
+		limit = outline->points + last;
+		v_start = outline->points[first];
+		v_last = outline->points[last];
+		v_control = v_start;
+		point = outline->points + first;
+		tags = outline->tags + first;
+		char tag = FT_CURVE_TAG(tags[0]);
+		FT_Vector v_e = v_control;
+		FT_Vector  v_s = v_control;
+		while (point < limit)
+		{
+			point++;
+			tags++;
+			tag = FT_CURVE_TAG(tags[0]);
+			switch (tag)
+			{
+				case FT_CURVE_TAG_ON:
+					PaintLine(v_s, *point);
+					v_s = *point;
+					break;
+				case FT_CURVE_TAG_CONIC:  //二次Bezier曲线
+					ret = PaintConic(point, limit, v_s, v_start, tags);
+					if (ret == -1) {
+						return -1;
+					}
+					else if (ret == -2) {
+						goto Close;
+					}
+					break;
+				default:  // FT_CURVE_TAG_CUBIC 三次Bezier曲线
+					ret = PaintCubic(point, limit, v_s, v_start, tags);
+					if (ret == -1) {
+						return - 1;
+					}
+					else if (ret == -2) {
+						goto Close;
+					}
+					break;
+			}
+		}
+	Close:
+		PaintLine(v_s, v_e);
+		first = last + 1;
+	}
+	return 0;
+}

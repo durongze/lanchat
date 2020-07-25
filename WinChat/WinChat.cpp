@@ -655,6 +655,17 @@ int HandleCmdMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+int HandlePaintBezier(HDC hdc, POINT apt[])
+{
+	//调用系统的绘制贝塞尔函数
+	PolyBezier(hdc, apt, 4);
+	MoveToEx(hdc, apt[0].x, apt[0].y, NULL);
+	LineTo(hdc, apt[1].x, apt[1].y);
+	MoveToEx(hdc, apt[2].x, apt[2].y, NULL);
+	LineTo(hdc, apt[3].x, apt[3].y);
+	return 0;
+}
+
 int HandlePaintMsgCamera()
 {
 	RECT rctA; // 定义一个RECT结构体，存储窗口的长宽高
@@ -669,6 +680,8 @@ int HandlePaintMsgCamera()
 	HDC hdcCopy = CreateCompatibleDC(hdcDesk); // 
 	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
 	BitBlt(hdcCamera, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
+	static POINT apt[4] = { { 22,22 },{ 4,44, },{ 33,33 },{ 66,66 } };
+	HandlePaintBezier(hdcCamera, apt);
 	DeleteObject(hObj);
 	DeleteObject(hBitmap);
 	DeleteDC(hdcCopy);
@@ -712,7 +725,6 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
-
 #if 1
 	HandlePaintMsgCamera();
 	HandlePaintMsgAvatar();
