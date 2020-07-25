@@ -86,17 +86,21 @@
 		bi.biPlanes = bm.bmPlanes;
 		bi.biSizeImage = bm.bmWidthBytes * bm.bmHeight;
 
+		BYTE* pData = (BYTE*)bm.bmBits;
+		if (pData == NULL) {
+			return 0;
+		}
 		LONG lineSize = bi.biWidth * bi.biBitCount / 8;
 		BYTE* pLineData = new BYTE[lineSize];
 		BYTE* pStart;
 		BYTE* pEnd;
-		BYTE* pData = (BYTE*)bm.bmBits;
 		LONG lineStart = 0;
 		LONG lineEnd = bi.biHeight - 1;
 		while (lineStart < lineEnd)
 		{
 			pStart = pData + (lineStart * lineSize);
 			pEnd = pData + (lineEnd * lineSize);
+			if (pStart == NULL || pEnd == NULL) { break; }
 			// Swap the top with the bottom
 			memcpy(pLineData, pStart, lineSize);
 			memcpy(pStart, pEnd, lineSize);

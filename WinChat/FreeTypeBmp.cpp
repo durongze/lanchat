@@ -264,12 +264,12 @@ int PaintBezier(HDC hdc, POINT apt[])
 
 int PaintLine(FT_Vector start, FT_Vector end)
 {
-	if (GetHdc() == NULL) {
+	HDC hdc = GetHdc();
+	if (hdc == NULL) {
 		return 0;
 	}
 	// QPainter painter;
 	// QPen pen(RandColor());
-	POINT apt[4];
 	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
 	float startX = int26p6_to_float(start.x);
 	float startY = -int26p6_to_float(start.y);
@@ -279,24 +279,22 @@ int PaintLine(FT_Vector start, FT_Vector end)
 	// painter.setPen(pen);
 	// painter.drawLine(startX, startY, fEndX, fEndY);
 
-	apt[0] = FtVectorToPoint(start);
-	apt[1] = FtVectorToPoint(end);
-	apt[2] = FtVectorToPoint(start);
-	apt[3] = FtVectorToPoint(end);
 	SelectObject(GetHdc(), pen);
-	PaintBezier(GetHdc(), apt);
+	MoveToEx(hdc, start.x, start.y, NULL);
+	LineTo(hdc, end.x, end.y);
 	return 0;
 }
 
 int PaintQuadPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2)
 {
-	if (GetHdc() == NULL) {
+	HDC hdc = GetHdc();
+	if (hdc == NULL) {
 		return 0;
 	}
 	//QPainter painter;
 	//QPen pen(RandColor());
 	//QPainterPath path;
-	POINT apt[4];
+	POINT apt[3];
 	HPEN pen = CreatePen(PS_DASH, 0, RGB(255, 0, 0));
 	float startX = int26p6_to_float(start.x);
 	float startY = -int26p6_to_float(start.y);
@@ -311,16 +309,16 @@ int PaintQuadPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2)
 	// painter.drawPath(path);
 	apt[0] = FtVectorToPoint(start);
 	apt[1] = FtVectorToPoint(vx1);
-	apt[2] = FtVectorToPoint(start);
-	apt[3] = FtVectorToPoint(vx2);
-	SelectObject(GetHdc(), pen);
-	PaintBezier(GetHdc(), apt);
+	apt[2] = FtVectorToPoint(vx2);
+	SelectObject(hdc, pen);
+	PolyBezier(hdc, apt, 3);
 	return 0;
 }
 
 int PaintCubicPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2, FT_Vector vx3)
 {
-	if (GetHdc() == NULL) {
+	HDC hdc = GetHdc();
+	if (hdc == NULL) {
 		return 0;
 	}
 	// QPainter painter;
@@ -345,8 +343,8 @@ int PaintCubicPath(FT_Vector start, FT_Vector vx1, FT_Vector vx2, FT_Vector vx3)
 	apt[1] = FtVectorToPoint(vx1);
 	apt[2] = FtVectorToPoint(vx2);
 	apt[3] = FtVectorToPoint(vx3);
-	SelectObject(GetHdc(), pen);
-	PaintBezier(GetHdc(), apt);
+	SelectObject(hdc, pen);
+	PolyBezier(hdc, apt, 4);
 	return 0;
 }
 
@@ -408,8 +406,14 @@ int PaintCubic(FT_Vector *&point, FT_Vector* limit, FT_Vector& v_s, FT_Vector v_
 }
 
 
-int PaintWord(FT_Face& face)
+int PaintWord(WORD word, FT_Face& face)
 {
+	FT_Error error = 0;
+	FT_Glyph glyph;
+	//读取一个字体位图到face中
+	FT_UInt idx = FT_Get_Char_Index(face, word);
+	error = FT_Load_Glyph(face, idx, FT_LOAD_DEFAULT);
+	// error = FT_Get_Glyph(face->glyph, &glyph);
 	FT_GlyphSlot pGlyphSlot = face->glyph;
 	FT_Outline* outline = &pGlyphSlot->outline;
 	//QPainter painter(this);

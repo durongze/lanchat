@@ -14,8 +14,11 @@ typedef struct tagIMAGEDATA
 	BYTE red;
 	BYTE alpha; // 本地图片不需要，桌面截图需要
 }IMAGEDATA;
-
+int OpenFreeType(FT_Library& pFTLib, FT_Face& pFTFace);
+int CloseFreeType(FT_Library& pFTLib, FT_Face& pFTFace);
 int WordInsertToBmp(char *strFile, char *dstFile);
 int WriteWordToBmp(BITMAPINFOHEADER& strInfo, IMAGEDATA*& arrayColor);
+void SetHdc(HDC hdc);
+int PaintWord(WORD word, FT_Face& face);
 
 #endif

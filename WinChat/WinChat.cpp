@@ -126,7 +126,9 @@ int DrawWindowRegon(TcpPackage *tp)
 			return -1;
 		}
 		GifWrite((DWORD*)bits, bi->biWidth, bi->biHeight);
+
 		WriteWordToBmp(*bi, bits);
+		
 		DeleteObject(hbitmap);
 		RECT regonCam = { RIGHT_CAMERA_X, RIGHT_CAMERA_Y, RIGHT_CAMERA_X + CAMERA_WIDTH, RIGHT_CAMERA_Y + CAMERA_HEIGHT };
 		RedrawWindow(g_hMainWindow, &regonCam, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
@@ -659,10 +661,10 @@ int HandlePaintBezier(HDC hdc, POINT apt[])
 {
 	//调用系统的绘制贝塞尔函数
 	PolyBezier(hdc, apt, 4);
-	MoveToEx(hdc, apt[0].x, apt[0].y, NULL);
-	LineTo(hdc, apt[1].x, apt[1].y);
-	MoveToEx(hdc, apt[2].x, apt[2].y, NULL);
-	LineTo(hdc, apt[3].x, apt[3].y);
+	//MoveToEx(hdc, apt[0].x, apt[0].y, NULL);
+	//LineTo(hdc, apt[3].x, apt[3].y);
+	//MoveToEx(hdc, apt[1].x, apt[1].y, NULL);
+	//LineTo(hdc, apt[2].x, apt[2].y);
 	return 0;
 }
 
@@ -680,8 +682,17 @@ int HandlePaintMsgCamera()
 	HDC hdcCopy = CreateCompatibleDC(hdcDesk); // 
 	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
 	BitBlt(hdcCamera, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
-	static POINT apt[4] = { { 22,22 },{ 4,44, },{ 33,33 },{ 66,66 } };
+	static POINT apt[4] = { { 22,22 },{ 22,44, },{ 43,33 },{ 66,26 } };
 	HandlePaintBezier(hdcCamera, apt);
+	SetHdc(hdcCamera);
+	WORD word;
+	FT_Library pFTLib = NULL;
+	FT_Face pFTFace = NULL;
+	OpenFreeType(pFTLib, pFTFace);
+	FT_Set_Char_Size(pFTFace, 0, 3 * 64, 500, 500);//设置字体大小
+	memcpy(&word, TEXT("杜"), 2);
+	PaintWord(word, pFTFace);
+	CloseFreeType(pFTLib, pFTFace);
 	DeleteObject(hObj);
 	DeleteObject(hBitmap);
 	DeleteDC(hdcCopy);
