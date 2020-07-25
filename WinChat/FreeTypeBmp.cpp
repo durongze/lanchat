@@ -128,13 +128,30 @@ int DrawWord(int bitmapStart, FT_Bitmap& bitmap, BITMAPINFOHEADER& strInfo, IMAG
 	return 0;
 }
 
+int PrintBitMap(FT_Bitmap &bitmap)
+{
+	FILE* fp = fopen("bitmap.txt", "w+");
+	for (int i = 0; i < bitmap.rows; ++i)
+	{
+		for (int j = 0; j < bitmap.width; ++j)
+		{
+			//  if it has gray>0 we set show it as 1, o otherwise
+			fprintf(fp, " %d ", bitmap.buffer[i * bitmap.width + j] ? 1 : 0);
+		}
+		fprintf(fp, " \n ");
+	}
+	fclose(fp);
+	return 0;
+}
+
 int WriteWord(WORD word, int& bitmapStart, FT_Face& pFTFace,
 	BITMAPINFOHEADER& strInfo, IMAGEDATA*& arrayColor)
 {
 	FT_Error error = 0;
 	FT_Glyph glyph;
 	//读取一个字体位图到face中
-	FT_Load_Glyph(pFTFace, FT_Get_Char_Index(pFTFace, word), FT_LOAD_DEFAULT);
+	FT_UInt idx = FT_Get_Char_Index(pFTFace, word);
+	error = FT_Load_Glyph(pFTFace, idx, FT_LOAD_DEFAULT);
 	error = FT_Get_Glyph(pFTFace->glyph, &glyph);
 	if (error) {
 		return -1;
@@ -144,6 +161,7 @@ int WriteWord(WORD word, int& bitmapStart, FT_Face& pFTFace,
 	FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
 	//把字插入到图片中，每个字中间间隔10个像素，并且离左上角x=100,y=100偏移量
 	DrawWord(bitmapStart, bitmap_glyph->bitmap, strInfo, arrayColor);
+	// PrintBitMap(bitmap_glyph->bitmap);
 	bitmapStart += bitmap_glyph->bitmap.width + 5;
 	//  free glyph
 	FT_Done_Glyph(glyph);

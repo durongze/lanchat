@@ -214,7 +214,7 @@ int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bi
 	EGifPutImageDesc(pGifFile, 0, 0, pGifFile->SWidth, pGifFile->SHeight, false, nullptr);
 	GifColorType *pCm = pColorMap->Colors; // color map
 
-										   // –¥»Îimage data
+	// –¥»Îimage data
 	for (int k = 0; k < pGifFile->SWidth * pGifFile->SHeight; ++k) {
 		uint8_t index = 0;
 		int mindis = 1 << 30;
