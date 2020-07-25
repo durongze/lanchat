@@ -24,6 +24,7 @@
 #define AVATAR_WIDTH   112
 #define AVATAR_HEIGHT  112 
 
+#define MSG_BROWSER_LEN 2048
 // 全局变量: 
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
@@ -39,7 +40,7 @@ HWND g_hRecordBtn;
 HWND g_hCamera;
 HWND g_hAvatar;
 HWND g_hMainWindow;
-wchar_t g_MsgBrowser[2048] = {0};
+wchar_t g_MsgBrowser[MSG_BROWSER_LEN] = {0};
 GifBitMap GrbBuffer = { 0, 0,{ 0 } };
 
 HRESULT SystemTransitionsExpectedErrors[] = {
@@ -99,16 +100,18 @@ wchar_t * char2wchar(const char* cchar)
 
 int AppendToMsgBrowser(const TcpPackage& tp)
 {
-
-	GetWindowText(g_hRecvMsg, g_MsgBrowser, sizeof(g_MsgBrowser));
-	int msgLen = lstrlen(g_MsgBrowser);
-	if (msgLen > sizeof(g_MsgBrowser) / 3) {
-		memmove(g_MsgBrowser, g_MsgBrowser + msgLen / 2, msgLen / 2);
+	int msgBrowserLen = MSG_BROWSER_LEN;
+	int oldMsgLen = 0;
+	int newMsgLen = 0;
+	GetWindowText(g_hRecvMsg, g_MsgBrowser, msgBrowserLen);
+	oldMsgLen = lstrlen(g_MsgBrowser);
+	if (oldMsgLen > msgBrowserLen / 3) {
+		memmove(g_MsgBrowser, g_MsgBrowser + oldMsgLen / 2, oldMsgLen / 2);
 	}
-	msgLen = lstrlen(g_MsgBrowser);
-	memcpy(g_MsgBrowser + msgLen, tp.buf, lstrlen((wchar_t*)tp.buf) * 2);
-	msgLen = lstrlen(g_MsgBrowser);
-	memcpy(g_MsgBrowser + msgLen , TEXT(" "), lstrlen(TEXT(" ")) * 2);
+	oldMsgLen = lstrlen(g_MsgBrowser);
+	memcpy(g_MsgBrowser + oldMsgLen, tp.buf, lstrlen((wchar_t*)tp.buf) * 2);
+	newMsgLen = lstrlen(g_MsgBrowser);
+	memcpy(g_MsgBrowser + newMsgLen, TEXT(" \r\n"), lstrlen(TEXT(" \r\n")) * 2);
 	SetWindowText(g_hRecvMsg, g_MsgBrowser);
 	return 0;
 }
@@ -751,11 +754,11 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		520, 10, 110, 40,
 		hWnd, (HMENU)IDC_PORT, hInst, NULL);
 	g_hRecvMsg = CreateWindow(TEXT("edit"), NULL,
-		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | WS_VSCROLL | WS_HSCROLL,
+		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | WS_VSCROLL | WS_HSCROLL | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_MULTILINE,
 		30, 70, 600, 200,
 		hWnd, (HMENU)IDC_RECV_MSG, hInst, NULL);
 	g_hSendMsg = CreateWindow(TEXT("edit"), NULL, 
-		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | WS_VSCROLL | WS_HSCROLL,
+		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | WS_VSCROLL | WS_HSCROLL | ES_MULTILINE,
 		30, 300, 600, 120,
 		hWnd, (HMENU)IDC_SEND_MSG, hInst, NULL);
 

@@ -280,6 +280,7 @@
 			if (ret > 0) {
 				Sleep(1);
 			}
+			DeleteObject(hcopy);
 			DeleteObject(hObj);
 			DeleteDC(hdcDesk);
 			Sleep(111);
