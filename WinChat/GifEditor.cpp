@@ -331,6 +331,7 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 
 	if (pGifFile != NULL) {
 		GifWriteImage(pGifFile, pColorMap, bits);
+		HandleImageSave(std::to_string(g_frameIdx) + ".bmp", pGifFile, bits);
 	}
 
 	if (pGifFile != NULL && g_frameIdx++ > MAX_FRAME_NUM) {

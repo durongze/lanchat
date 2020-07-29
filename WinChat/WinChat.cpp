@@ -126,7 +126,6 @@ int DrawWindowRegon(TcpPackage *tp)
 			return -1;
 		}
 		GifWrite("gif", bi->biWidth, bi->biHeight, (uint8_t*)bits);
-
 		WriteWordToBmp(*bi, bits);
 		
 		DeleteObject(hbitmap);
