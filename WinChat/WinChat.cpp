@@ -18,11 +18,14 @@
 
 #define MAX_LOADSTRING 100
 
-#define RIGHT_CAMERA_X 750
-#define RIGHT_CAMERA_Y 70
+#define CAMERA_X 750
+#define CAMERA_Y 70
 
-#define AVATAR_WIDTH   112
-#define AVATAR_HEIGHT  112 
+#define AVATAR_X  CAMERA_X
+#define AVATAR_Y  CAMERA_Y + CAMERA_HEIGHT + 10 
+
+#define AVATAR_WIDTH   220
+#define AVATAR_HEIGHT  180 
 
 #define MSG_BROWSER_LEN 2048
 // 全局变量: 
@@ -129,10 +132,10 @@ int DrawWindowRegon(TcpPackage *tp)
 		WriteWordToBmp(*bi, bits);
 		
 		DeleteObject(hbitmap);
-		RECT regonCam = { RIGHT_CAMERA_X, RIGHT_CAMERA_Y, RIGHT_CAMERA_X + CAMERA_WIDTH, RIGHT_CAMERA_Y + CAMERA_HEIGHT };
+		RECT regonCam = { CAMERA_X, CAMERA_Y, CAMERA_X + CAMERA_WIDTH, CAMERA_Y + CAMERA_HEIGHT };
 		RedrawWindow(g_hMainWindow, &regonCam, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
-		RECT regonAvatar = { RIGHT_CAMERA_X, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10,  RIGHT_CAMERA_X + AVATAR_WIDTH, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10 + AVATAR_HEIGHT };
+		RECT regonAvatar = { AVATAR_X, AVATAR_Y ,  AVATAR_X + AVATAR_WIDTH, AVATAR_Y + AVATAR_HEIGHT };
 		RedrawWindow(g_hMainWindow, &regonAvatar, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE);
 		UpdateWindow(g_hMainWindow);
 	} else {
@@ -721,7 +724,9 @@ int HandlePaintMsgAvatar()
 	HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
 	HDC hdcCopy = CreateCompatibleDC(hdcDesk); // 
 	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。
-	BitBlt(hdcAvatar, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
+	// BitBlt(hdcAvatar, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
+	SetStretchBltMode(hdcAvatar, HALFTONE);
+	StretchBlt(hdcAvatar, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, GrbBuffer.width, GrbBuffer.height, SRCCOPY);
 	DeleteObject(hObj);
 	DeleteObject(hBitmap);
 	DeleteDC(hdcCopy);
@@ -800,15 +805,15 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hWnd, (HMENU)IDC_LOAD, hInst, NULL);
 	g_hRecordBtn = CreateWindow(TEXT("button"), TEXT("录制"),
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER,
-		RIGHT_CAMERA_X + CAMERA_WIDTH - 80, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10, 80, 40,
+		AVATAR_X + CAMERA_WIDTH - 80, AVATAR_Y, 80, 40,
 		hWnd, (HMENU)IDC_RECORD, hInst, NULL);
 	g_hCamera = CreateWindow(TEXT("static"), TEXT("视频:"),
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
-		RIGHT_CAMERA_X, RIGHT_CAMERA_Y, CAMERA_WIDTH, CAMERA_HEIGHT,
+		CAMERA_X, CAMERA_Y, CAMERA_WIDTH, CAMERA_HEIGHT,
 		hWnd, (HMENU)IDC_CAMERA, hInst, NULL);
 	g_hAvatar = CreateWindow(TEXT("static"), TEXT("头像:"),
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER,
-		RIGHT_CAMERA_X, RIGHT_CAMERA_Y + CAMERA_HEIGHT + 10, AVATAR_WIDTH, AVATAR_HEIGHT,
+		AVATAR_X, AVATAR_Y, AVATAR_WIDTH, AVATAR_HEIGHT,
 		hWnd, (HMENU)IDC_AVATAR, hInst, NULL);
 
 	SetWindowText(g_hIpAddr, TEXT("127.0.0.1"));
