@@ -284,6 +284,7 @@
 			if (ret > 0) {
 				Sleep(1);
 			}
+			DeleteObject(hBitmap);
 			DeleteObject(hcopy);
 			DeleteObject(hObj);
 			DeleteDC(hdcDesk);

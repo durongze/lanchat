@@ -405,7 +405,6 @@ int PaintCubic(FT_Vector *&point, FT_Vector* limit, FT_Vector& v_s, FT_Vector v_
 	return -2;
 }
 
-
 int PaintWord(WORD word, FT_Face& face)
 {
 	FT_Error error = 0;

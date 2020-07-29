@@ -601,9 +601,8 @@ int HandleCmdLoad(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", fileDir);
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)GifRead, &GrbBuffer, 0, &threadId);
 		delete[]fileDir;
-		EnableWindow(g_hLoadBtn, true);
 	}
-
+	EnableWindow(g_hLoadBtn, true);
 	delete[]szFile;
 	delete[]szFileTitle;
 	return 0;
@@ -684,15 +683,16 @@ int HandlePaintMsgCamera()
 	BitBlt(hdcCamera, 0, 0, rctA.right - rctA.left, rctA.bottom - rctA.top, hdcCopy, 0, 0, SRCCOPY);
 	static POINT apt[4] = { { 22,22 },{ 22,44, },{ 43,33 },{ 66,26 } };
 	HandlePaintBezier(hdcCamera, apt);
-	SetHdc(hdcCamera);
+#if 0
 	WORD word;
 	FT_Library pFTLib = NULL;
 	FT_Face pFTFace = NULL;
 	OpenFreeType(pFTLib, pFTFace);
 	FT_Set_Char_Size(pFTFace, 0, 3 * 64, 500, 500);//设置字体大小
-	memcpy(&word, TEXT("杜"), 2);
+	memcpy(&word, TEXT("荣"), 2);
 	PaintWord(word, pFTFace);
 	CloseFreeType(pFTLib, pFTFace);
+#endif
 	DeleteObject(hObj);
 	DeleteObject(hBitmap);
 	DeleteDC(hdcCopy);
@@ -737,6 +737,7 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
 #if 1
+	SetHdc(hdc);
 	HandlePaintMsgCamera();
 	HandlePaintMsgAvatar();
 #else
@@ -749,6 +750,7 @@ int HandlePaintMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。             
 	BitBlt(hdcCopy, 0, 0, nWidth, nHeight, hdcDesk, 0, 0, SRCCOPY);
 	BitBlt(hdcCamera, 0, 0, nWidth, nHeight, hdcCopy, 0, 0, SRCCOPY);
+	DeleteObject(hBitmap);
 	DeleteObject(hObj);
 	DeleteDC(hdcCopy);
 	DeleteDC(hdcDesk);
