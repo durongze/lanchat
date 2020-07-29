@@ -125,7 +125,7 @@ int DrawWindowRegon(TcpPackage *tp)
 		if (hbitmap == NULL) {
 			return -1;
 		}
-		GifWrite((DWORD*)bits, bi->biWidth, bi->biHeight);
+		GifWrite("gif", bi->biWidth, bi->biHeight, (uint8_t*)bits);
 
 		WriteWordToBmp(*bi, bits);
 		

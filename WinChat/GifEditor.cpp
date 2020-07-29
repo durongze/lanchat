@@ -7,7 +7,37 @@ giftool.c - GIF transformation tool.
 #include <time.h>
 
 static int g_frameIdx = -1;
+//将string转换成wstring  
+std::wstring string2wstring(std::string str)
+{
+	std::wstring result;
+	//获取缓冲区大小，并申请空间，缓冲区大小按字符计算  
+	int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
+	TCHAR* buffer = new TCHAR[len + 1];
+	//多字节编码转换成宽字节编码  
+	MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), buffer, len);
+	buffer[len] = '\0';             //添加字符串结尾  
+									//删除缓冲区并返回值  
+	result.append(buffer);
+	delete[] buffer;
+	return result;
+}
 
+//将wstring转换成string  
+std::string wstring2string(std::wstring wstr)
+{
+	std::string result;
+	//获取缓冲区大小，并申请空间，缓冲区大小事按字节计算的  
+	int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), NULL, 0, NULL, NULL);
+	char* buffer = new char[len + 1];
+	//宽字节编码转换成多字节编码  
+	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), buffer, len, NULL, NULL);
+	buffer[len] = '\0';
+	//删除缓冲区并返回值  
+	result.append(buffer);
+	delete[] buffer;
+	return result;
+}
 void DumpScreen2RGBA(unsigned char *GrbBuffer,
 	ColorMapObject *ColorMap, GifRowType *ScreenBuffer, int ScreenWidth, int ScreenHeight)
 {
@@ -28,6 +58,47 @@ void DumpScreen2RGBA(unsigned char *GrbBuffer,
 	}
 }
 ColorMapObject g_pColorMap = {0};
+
+int HandleImageSave(std::string imgFile, GifFileType *GifFile, unsigned char *GrbBuffer, uint8_t pixByte)
+{
+	HANDLE hFile = CreateFile(string2wstring(imgFile).c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == NULL) {
+		return -1;
+	};
+	int bmp_size = GifFile->SWidth * GifFile->SHeight * pixByte;
+	
+	// 【写位图文件头】
+	BITMAPFILEHEADER bmpHeader;
+	bmpHeader.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + bmp_size;  // BMP图像文件的大小
+	bmpHeader.bfType = 0x4D42;  // 位图类别，根据不同的操作系统而不同，在Windows中，此字段的值总为‘BM’
+	bmpHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);          // BMP图像数据的偏移位置
+	bmpHeader.bfReserved1 = 0;  // 总为0
+	bmpHeader.bfReserved2 = 0;  // 总为0
+	DWORD dwBytesWritten = 0;
+
+	WriteFile(hFile, (LPSTR)&bmpHeader, sizeof(bmpHeader), &dwBytesWritten, NULL);
+	
+	BITMAPINFOHEADER bmiHeader;
+	bmiHeader.biSize = sizeof(bmiHeader);               // 本结构所占用字节数，即sizeof(BITMAPINFOHEADER);
+	bmiHeader.biWidth = GifFile->SWidth;                          // 位图宽度（单位：像素）
+	bmiHeader.biHeight = GifFile->SHeight;                        // 位图高度（单位：像素）
+	bmiHeader.biPlanes = 1;                             // 目标设备的级别，必须为1
+	bmiHeader.biBitCount = pixByte * 8;                    // 像素的位数（每个像素所需的位数，范围：1、4、8、24、32）
+	bmiHeader.biCompression = 0;                        // 压缩类型（0：不压缩 1：BI_RLE8压缩类型 2：BI_RLE4压缩类型）
+	bmiHeader.biSizeImage = bmp_size;                   // 位图大小（单位：字节）
+	bmiHeader.biXPelsPerMeter = 0;                      // 水平分辨率(像素/米)
+	bmiHeader.biYPelsPerMeter = 0;                      // 垂直分辨率(像素/米)
+	bmiHeader.biClrUsed = 0;                            // 位图实际使用的彩色表中的颜色索引数
+	bmiHeader.biClrImportant = 0;                       // 对图象显示有重要影响的颜色索引的数目
+														// 【写位图信息头（BITMAPINFO的bmiHeader成员）】
+	WriteFile(hFile, (LPSTR)&bmiHeader, sizeof(bmiHeader), &dwBytesWritten, NULL);
+	
+	// 【写像素内容】
+	WriteFile(hFile, GrbBuffer, bmp_size, &dwBytesWritten, NULL);
+	CloseHandle(hFile);
+	return 0;
+}
+
 int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, unsigned char *GrbBuffer)
 {
 	if (DGifGetImageDesc(GifFile) == GIF_ERROR) {
@@ -167,6 +238,7 @@ int GifRead(DWORD *arg)
 				pGrbBuffer->height = GifFile->SHeight;
 				pGrbBuffer->frame[frameIdx] = (unsigned char*)malloc(GifFile->SWidth * GifFile->SHeight * 4);
 				HandleImageDesc(GifFile, ScreenBuffer, pGrbBuffer->frame[frameIdx]);
+				HandleImageSave(std::string(pGrbBuffer->gitdir) + std::to_string(frameIdx) + ".bmp", GifFile, pGrbBuffer->frame[frameIdx]);
 				frameIdx += frameIdx + 1 >= sizeof(pGrbBuffer->frame) / sizeof(unsigned char*) ? -frameIdx : 1;
 				break;
 			case EXTENSION_RECORD_TYPE:
@@ -208,7 +280,7 @@ int GifWriteScreen(GifFileType *pGifFile, ColorMapObject *pColorMap)
 	return 0;
 }
 
-int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bits)
+int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bits, uint8_t pixByte)
 {
 	// 写入image descriptor块，因为不使用局部颜色表，传入nullptr，而不传pColorMap
 	EGifPutImageDesc(pGifFile, 0, 0, pGifFile->SWidth, pGifFile->SHeight, false, nullptr);
@@ -218,9 +290,9 @@ int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bi
 	for (int k = 0; k < pGifFile->SWidth * pGifFile->SHeight; ++k) {
 		uint8_t index = 0;
 		int mindis = 1 << 30;
-		uint8_t rr = *(bits + k * 4 + 0);
-		uint8_t gg = *(bits + k * 4 + 1);
-		uint8_t bb = *(bits + k * 4 + 2);
+		uint8_t rr = *(bits + k * pixByte + 0);
+		uint8_t gg = *(bits + k * pixByte + 1);
+		uint8_t bb = *(bits + k * pixByte + 2);
 
 		// 将颜色匹配到颜色表的索引颜色 256色
 		for (int i = 0; i < (1 << 8); i++) {
@@ -242,14 +314,13 @@ int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bi
 	return 0;
 }
 
-int GifWrite(DWORD *arg, int Width, int Height)
+int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 {
-	uint8_t *bits = (uint8_t*)arg;
 	int errorStatus;
 	static GifFileType *pGifFile = NULL;
 	ColorMapObject *pColorMap = &g_pColorMap;
 	if (pGifFile == NULL && g_frameIdx == 0) {
-		pGifFile = EGifOpenFileName((std::to_string(time(0)) + ".gif").c_str(), 0, &errorStatus);
+		pGifFile = EGifOpenFileName((gifDir + std::to_string(time(0)) + ".gif").c_str(), 0, &errorStatus);
 		if (pGifFile == NULL) {
 			return 1;
 		}

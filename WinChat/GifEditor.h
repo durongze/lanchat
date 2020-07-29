@@ -40,9 +40,11 @@ typedef struct {
 	unsigned char *frame[GIF_FRAME];
 }GifBitMap;
 
+int HandleImageSave(std::string imgFile, GifFileType *GifFile, unsigned char *GrbBuffer, uint8_t pixByte = 4);
 int GifRead(DWORD *arg);
 int SetRecord(int frameIdx);
 int GetRecord();
-int GifWrite(DWORD *arg, int Width, int Height);
+int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bits, uint8_t pixByte = 4);
+int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits);
 
 #endif
