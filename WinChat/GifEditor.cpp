@@ -61,7 +61,7 @@ ColorMapObject g_pColorMap = {0};
 
 int HandleImageSave(std::string imgFile, GifFileType *GifFile, unsigned char *GrbBuffer, uint8_t pixByte)
 {
-	HANDLE hFile = CreateFile(string2wstring(imgFile).c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hFile = CreateFile(string2wstring(imgFile + ".bmp").c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == NULL) {
 		return -1;
 	};
@@ -238,7 +238,7 @@ int GifRead(DWORD *arg)
 				pGrbBuffer->height = GifFile->SHeight;
 				pGrbBuffer->frame[frameIdx] = (unsigned char*)malloc(GifFile->SWidth * GifFile->SHeight * 4);
 				HandleImageDesc(GifFile, ScreenBuffer, pGrbBuffer->frame[frameIdx]);
-				HandleImageSave(std::string(pGrbBuffer->gitdir) + std::to_string(frameIdx) + ".bmp", GifFile, pGrbBuffer->frame[frameIdx]);
+				HandleImageSave(std::string(pGrbBuffer->gitdir) + std::to_string(frameIdx), GifFile, pGrbBuffer->frame[frameIdx]);
 				frameIdx += frameIdx + 1 >= sizeof(pGrbBuffer->frame) / sizeof(unsigned char*) ? -frameIdx : 1;
 				break;
 			case EXTENSION_RECORD_TYPE:
@@ -331,7 +331,7 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 
 	if (pGifFile != NULL) {
 		GifWriteImage(pGifFile, pColorMap, bits);
-		HandleImageSave(std::to_string(g_frameIdx) + ".bmp", pGifFile, bits);
+		HandleImageSave(std::to_string(g_frameIdx), pGifFile, bits);
 	}
 
 	if (pGifFile != NULL && g_frameIdx++ > MAX_FRAME_NUM) {
