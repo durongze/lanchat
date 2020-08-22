@@ -151,17 +151,18 @@ OctreeNode *OctreeNode::NextChild(int idx)
 	return m_childNode[idx];
 }
 
-void OctreeNode::Dump(std::fstream& fs)
+void OctreeNode::Dump(std::fstream& fs, unsigned int idxChild)
 {
+	unsigned int idx;
 	std::map<int, OctreeNode*>::const_iterator iter;
-	fs << "[" << m_lvl << ","  << m_val << "] ";
+	fs << "[" << m_lvl << "," << idxChild << ","  << m_val << "] ";
 	fs << std::endl;
-	for (iter = m_childNode.begin(); m_childNode.end() != iter; iter++) {
-		for (int id = 0; id < m_lvl; id++) {
+	for (iter = m_childNode.begin(), idx = 0; m_childNode.end() != iter; iter++, idx++) {
+		for (int id = -1; id < m_lvl; id++) {
 			fs << "    ";
 		}
 		if (iter->second) {
-			iter->second->Dump(fs);
+			iter->second->Dump(fs, idx);
 		}
 	}
 }
@@ -175,7 +176,7 @@ Octree::Octree()
 Octree::Octree(int depth)
 	: m_depth(depth), m_root(NULL), m_childNum(8)
 {
-	m_root = new OctreeNode();
+	m_root = new OctreeNode(-1, 65535);
 	InitChild(m_root, 0, m_depth);
 }
 
@@ -196,9 +197,9 @@ void Octree::InitChild(OctreeNode *root, int level, int depth)
 	unsigned int l;
 	for (l = 0; l < m_childNum; l++) {
 		int value = l;
-		OctreeNode *child = new OctreeNode(level, value);
+		OctreeNode *child = new OctreeNode(level, base + value);
 		if (child != NULL) {
-			root->InsertChild(base + l, child);
+			root->InsertChild(l, child);
 			InitChild(child, level, depth);
 		}
 	}
@@ -221,6 +222,6 @@ int Octree::InsertNumber(Number& num)
 
 void Octree::Dump(std::fstream& fs)
 {
-	m_root->Dump(fs);
+	m_root->Dump(fs, 0);
 }
 

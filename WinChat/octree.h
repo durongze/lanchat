@@ -36,7 +36,7 @@ public:
 	int InsertChild(int idx, OctreeNode*& node);
 	int RemoveChild(int idx);
 	int PeekChild(int idx, OctreeNode& node);
-	void Dump(std::fstream& fs);
+	void Dump(std::fstream& fs, unsigned int idxChild);
 	OctreeNode *NextChild(int idx);
 private:
 	std::map<int, OctreeNode*> m_childNode;
