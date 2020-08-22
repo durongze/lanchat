@@ -16,6 +16,7 @@
 #include "GifEditor.h"
 #include <commdlg.h>
 #include "octree.h"
+#include <fstream>
 
 #define MAX_LOADSTRING 100
 
@@ -439,7 +440,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ int       nCmdShow)
 {
 	Octree oct(7);
-	oct.Dump();
+	std::fstream fs;
+	fs.open("octree_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
+	oct.Dump(fs);
+	fs.close();
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "china.gif");

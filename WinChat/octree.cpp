@@ -3,8 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-std::fstream g_fs;
-
 OctreeNode::OctreeNode()
 	:m_val(0), m_childNode(), m_lvl(0)
 {
@@ -92,17 +90,17 @@ int OctreeNode::PeekChild(int idx, OctreeNode& node)
 	return 0;
 }
 
-void OctreeNode::Dump()
+void OctreeNode::Dump(std::fstream& fs)
 {
 	std::map<int, OctreeNode*>::const_iterator iter;
-	g_fs << "[" << m_lvl << ","  << m_val << "] ";
-	g_fs << std::endl;
+	fs << "[" << m_lvl << ","  << m_val << "] ";
+	fs << std::endl;
 	for (iter = m_childNode.begin(); m_childNode.end() != iter; iter++) {
 		for (int id = 0; id < m_lvl; id++) {
-			g_fs << "    ";
+			fs << "    ";
 		}
 		if (iter->second) {
-			iter->second->Dump();
+			iter->second->Dump(fs);
 		}
 	}
 }
@@ -122,7 +120,7 @@ Octree::Octree(int depth)
 
 Octree::~Octree()
 {
-
+	delete m_root;
 }
 
 void Octree::InitChild(OctreeNode *root, int d, int depth)
@@ -145,9 +143,7 @@ void Octree::InitChild(OctreeNode *root, int d, int depth)
 	return;
 }
 
-void Octree::Dump()
+void Octree::Dump(std::fstream& fs)
 {
-	g_fs.open("octree_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
-	m_root->Dump();
-	g_fs.close();
+	m_root->Dump(fs);
 }

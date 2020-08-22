@@ -16,7 +16,7 @@ public:
 	int InsertChild(int idx, OctreeNode*& node);
 	int RemoveChild(int idx);
 	int PeekChild(int idx, OctreeNode& node);
-	void Dump();
+	void Dump(std::fstream& fs);
 private:
 	std::map<int, OctreeNode*> m_childNode;
 	int m_val;
@@ -30,7 +30,7 @@ public:
 	Octree(int depth);
 	~Octree();
 	void InitChild(OctreeNode *child, int d, int depth);
-	void Dump();
+	void Dump(std::fstream& fs);
 private:
 	int m_childNum;
 	int m_depth;
