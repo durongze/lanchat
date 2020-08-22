@@ -3,6 +3,59 @@
 #include <iostream>
 #include <fstream>
 
+Number::Number(int type, int value, unsigned int bitNum)
+	:m_val(value), m_bitNum(bitNum), m_type(type)
+{
+	InitBit(m_val);
+}
+
+Number::~Number()
+{
+
+}
+
+void Number::InitBit(int value)
+{
+	m_bitNum = sizeof(value) * 8;
+	unsigned int idx;
+	for (idx = 0; idx < m_bitNum; idx++) {
+		m_bit[idx] = (value >> (m_bitNum - idx - 1)) & 1;
+	}
+}
+
+int Number::TruncBit(int bitNum)
+{
+	unsigned int idx;
+	std::map<int, int>::iterator iter;
+	for (idx = 0, iter = m_bit.begin(); idx < bitNum && iter != m_bit.end(); idx++, ++iter) {
+	}
+	m_bit.erase(iter, m_bit.end());
+	return 0;
+}
+
+void Number::Dump(std::fstream& fs)
+{
+	std::map<int, int>::iterator iter;
+	for (iter = m_bit.begin(); iter != m_bit.end(); ++iter) {
+		fs << "[" << iter->first << "," << iter->second << "] ";
+	}
+}
+
+int Number::GetType()
+{
+	return m_type;
+}
+
+Number::Iterator Number::begin()
+{
+	return m_bit.begin();
+}
+
+Number::Iterator Number::end()
+{
+	return m_bit.end();
+}
+
 OctreeNode::OctreeNode()
 	:m_val(0), m_childNode(), m_lvl(0)
 {
@@ -69,6 +122,9 @@ int OctreeNode::Assign(const OctreeNode& node)
 
 int OctreeNode::InsertChild(int idx, OctreeNode*& node)
 {
+	if (m_childNode[idx] != NULL) {
+		delete m_childNode[idx];
+	}
 	m_childNode[idx] = node;
 	return 0;
 }
@@ -88,6 +144,11 @@ int OctreeNode::PeekChild(int idx, OctreeNode& node)
 		node.Assign(*m_childNode[idx]);
 	}
 	return 0;
+}
+
+OctreeNode *OctreeNode::NextChild(int idx)
+{
+	return m_childNode[idx];
 }
 
 void OctreeNode::Dump(std::fstream& fs)
@@ -123,27 +184,43 @@ Octree::~Octree()
 	delete m_root;
 }
 
-void Octree::InitChild(OctreeNode *root, int d, int depth)
+void Octree::InitChild(OctreeNode *root, int level, int depth)
 {
+	int base = 100;
 	if (root == NULL) {
 		return;
 	}
-	if (++d >= depth) {
+	if (++level >= depth) {
 		return;
 	}
 	unsigned int l;
 	for (l = 0; l < m_childNum; l++) {
 		int value = l;
-		OctreeNode *child = new OctreeNode(d, value);
+		OctreeNode *child = new OctreeNode(level, value);
 		if (child != NULL) {
-			root->InsertChild(l, child);
-			InitChild(child, d, depth);
+			root->InsertChild(base + l, child);
+			InitChild(child, level, depth);
 		}
 	}
 	return;
+}
+
+int Octree::InsertNumber(Number& num)
+{
+	int childIdx = num.GetType();
+	Number::Iterator iter;
+	OctreeNode *root = NULL;
+	for (iter = num.begin(), root = m_root;
+		iter != num.end() && root != NULL;
+		iter++, root = root->NextChild(childIdx)) {
+		OctreeNode *node = new OctreeNode(iter->first, iter->second);
+		root->InsertChild(childIdx, node);
+	}
+	return 0;
 }
 
 void Octree::Dump(std::fstream& fs)
 {
 	m_root->Dump(fs);
 }
+

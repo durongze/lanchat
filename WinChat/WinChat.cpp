@@ -439,11 +439,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-	Octree oct(7);
 	std::fstream fs;
+	fs.open("number_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
+	Number num(1, 0xF0FFFFFF);
+	// num.TruncBit(7);
+	num.Dump(fs);
+	fs.close();
 	fs.open("octree_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
+	Octree oct(7);
+	oct.InsertNumber(num);
 	oct.Dump(fs);
 	fs.close();
+
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "china.gif");
