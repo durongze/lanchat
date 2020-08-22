@@ -158,6 +158,7 @@
     <ClInclude Include="giflib\gif_hash.h" />
     <ClInclude Include="giflib\gif_lib.h" />
     <ClInclude Include="giflib\gif_lib_private.h" />
+    <ClInclude Include="octree.h" />
     <ClInclude Include="OutputManager.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="Resource.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="giflib\gif_hash.c" />
     <ClCompile Include="giflib\openbsd-reallocarray.c" />
     <ClCompile Include="giflib\quantize.c" />
+    <ClCompile Include="octree.cpp" />
     <ClCompile Include="OutputManager.cpp" />
     <ClCompile Include="RgbYuv.cpp" />
     <ClCompile Include="stdafx.cpp">

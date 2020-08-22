@@ -15,6 +15,7 @@
 #include "FreeTypeBmp.h"
 #include "GifEditor.h"
 #include <commdlg.h>
+#include "octree.h"
 
 #define MAX_LOADSTRING 100
 
@@ -437,6 +438,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
+	Octree oct(7);
+	oct.Dump();
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "china.gif");
