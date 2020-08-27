@@ -34,6 +34,7 @@ public:
 	int Assign(int level, int value);
 	int Assign(const OctreeNode& node);
 	int InsertChild(int idx, OctreeNode*& node);
+	int ReplaceChild(int idx, OctreeNode*& node);
 	int RemoveChild(int idx);
 	int PeekChild(int idx, OctreeNode& node);
 	void Dump(std::fstream& fs, unsigned int idxChild);
