@@ -36,6 +36,12 @@ int Number::TruncBit(int bitNum)
 	return 0;
 }
 
+int Number::SetBit(int bitIdx, int bitVal)
+{
+	m_bit[bitIdx] = bitVal;
+	return 0;
+}
+
 void Number::Dump(std::fstream& fs)
 {
 	std::map<int, int>::iterator iter;
@@ -164,9 +170,18 @@ int OctreeNode::PeekChild(int idx, OctreeNode& node)
 	return 0;
 }
 
-OctreeNode *OctreeNode::NextChild(int idx)
+OctreeNode *OctreeNode::NextChild(int idxChild)
 {
-	return m_childNode[idx];
+	return m_childNode[idxChild];
+}
+
+int OctreeNode::GetValue()
+{
+	return m_val;
+}
+int OctreeNode::GetLevel()
+{
+	return m_lvl;
 }
 
 void OctreeNode::Dump(std::fstream& fs, unsigned int idxChild)
@@ -205,22 +220,21 @@ Octree::~Octree()
 	}
 }
 
-void Octree::InitChild(OctreeNode *root, int level, int depth)
+void Octree::InitChild(OctreeNode *root, int level, int depth, int base)
 {
-	int base = 100;
 	if (root == NULL) {
 		return;
 	}
-	if (level >= depth) {
+	if (level > depth) {
 		return;
 	}
 	unsigned int l;
 	for (l = 0; l < m_childNum; l++) {
-		int value = l;
-		OctreeNode *child = new OctreeNode(level, base + value);
+		int value = base * 100 + level * 10 + l;
+		OctreeNode *child = new OctreeNode(level, value);
 		if (child != NULL) {
 			root->InsertChild(l, child);
-			InitChild(child, level + 1, depth);
+			InitChild(child, level + 1, depth, value);
 		}
 	}
 	return;
@@ -237,6 +251,44 @@ int Octree::InsertNumber(Number& num)
 		OctreeNode *node = new OctreeNode(iter->first, iter->second);
 		root->InsertChild(childIdx, node);
 	}
+	return 0;
+}
+
+int Octree::GetChildIdx(int idxAllChild, int level)
+{
+	int lvl = m_depth - level;
+	int idxChild = idxAllChild / (int)pow(m_childNum, lvl) % m_childNum;
+	return idxChild;
+}
+
+OctreeNode *Octree::GetChild(int idxAllChild, int level, int& idxChild)
+{
+	int i;
+	OctreeNode *child = m_root;
+	for (i = 1;	i <= level && child != NULL; i++) {
+		idxChild = GetChildIdx(idxAllChild, i);
+		child = child->NextChild(idxChild);
+	}
+
+	return child;
+}
+
+/*idx 为最大层的编号，该编号到根节点只有一个路径，即为我们要的数字*/
+int Octree::PickupNumber(Number& num, int idx, std::fstream& fsOct)
+{
+	int level = startLevel;
+	int depth = m_depth;
+	int idxChild = 0;
+	int i;
+	OctreeNode *child = m_root;
+	for (i = 1;	i <= m_depth && child != NULL; i++) {
+		idxChild = GetChildIdx(idx, i);
+		child = child->NextChild(idxChild);
+		num.SetBit(i - 1, child->GetValue());
+		fsOct << "[" << i << "," << idxChild << "," << child->GetValue() << "] ";
+	}
+	num.TruncBit(m_depth);
+
 	return 0;
 }
 

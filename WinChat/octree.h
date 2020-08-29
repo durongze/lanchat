@@ -9,6 +9,7 @@ public:
 	~Number();
 	void InitBit(int value);
 	int TruncBit(int bitNum);
+	int SetBit(int bitIdx, int bitVal);
 	void Dump(std::fstream& fs);
 	int GetType();
 public:
@@ -38,7 +39,9 @@ public:
 	int RemoveChild(int idx);
 	int PeekChild(int idx, OctreeNode& node);
 	void Dump(std::fstream& fs, unsigned int idxChild);
-	OctreeNode *NextChild(int idx);
+	OctreeNode *NextChild(int idxChild);
+	int GetValue();
+	int GetLevel();
 private:
 	std::map<int, OctreeNode*> m_childNode;
 	int m_val;
@@ -51,8 +54,11 @@ public:
 	Octree();
 	Octree(int depth);
 	~Octree();
-	void InitChild(OctreeNode *child, int level, int depth);
+	void InitChild(OctreeNode *child, int level, int depth, int base = 0);
 	int InsertNumber(Number& num);
+	int GetChildIdx(int idxAllChild, int level);
+	OctreeNode *GetChild(int idxAllChild, int level, int& idxChild);
+	int PickupNumber(Number& num, int idx, std::fstream& fsOct);
 	void Dump(std::fstream& fs);
 private:
 	int m_childNum;

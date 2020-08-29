@@ -440,20 +440,26 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ int       nCmdShow)
 {
 	std::fstream fsNum;
-	Octree oct(7);
-	for (int i = 1; i < 9; i++) {
+	Octree oct(3);
+
+	for (int i = 1; i < 1; i++) {
 		fsNum.open(std::to_string(i) + "number_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
 		Number num(i, 0xF0FFFFF0 + i);
-		// num.TruncBit(7);
+		num.TruncBit(3);
 		num.Dump(fsNum);
 		fsNum.close();
 		oct.InsertNumber(num);
 	}
+
 	std::fstream fsOct;
 	fsOct.open("octree_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
 	oct.Dump(fsOct);
 	fsOct.close();
-
+	Number num(1, 1);
+	fsOct.open("pickup_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
+	oct.PickupNumber(num, pow(8,3) - 2, fsOct);
+	num.Dump(fsOct);
+	fsOct.close();
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "china.gif");
