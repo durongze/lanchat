@@ -1,7 +1,7 @@
 #ifndef __OCTREE_H__
 #define __OCTREE_H__
 #include <map>
-
+#include <fstream>
 class Number
 {
 public:
