@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+﻿#include <windows.h>
 #include "TcpChatX.h"
-
-#pragma comment(lib,"Ws2_32.lib ")
+#include <iostream>
+#pragma comment(lib,"ws2_32.lib ")
 
 	int TcpServer::Init(int p)
 	{
@@ -35,6 +35,9 @@
 			WSACleanup();
 			return -4;
 		}
+		
+		// sem_init(&sem, 0, 1);
+		
 		return 0;
 	}
 
@@ -49,8 +52,14 @@
 			if (clientSocket == INVALID_SOCKET)
 			{
 				Sleep(111);
+			} else {
+				// BOOL bSet = TRUE;
+				// setsockopt(clientSocket, SOL_SOCKET, SO_KEEPALIVE, (const char*)&bSet, sizeof(BOOL));
+				m_cli.insert(std::make_pair(clientSocket, cliAddr));
+				std::cout << "accept:" << clientSocket << std::endl;
+				// sem_post(&sem);
+				ReleaseSemaphore(sem, 1, NULL);
 			}
-			m_cli.insert(std::make_pair(clientSocket, cliAddr));
 		}
 		return 0;
 	}
@@ -58,27 +67,36 @@
 	int TcpServer::Recv(TcpPackage& img)
 	{
 		fd_set readSet;
-		struct timeval tm = { 0,30 };
+		struct timeval tm = { 1,300 };
 		int ret;
+		struct sockaddr addr;
+		int len = sizeof(addr);
 		std::map<SOCKET, struct sockaddr_in>::iterator iter;
 		for (iter = m_cli.begin(); iter != m_cli.end(); ++iter)
 		{
 			FD_ZERO(&readSet);
 			FD_SET(iter->first, &readSet);
 			ret = select(iter->first + 1, &readSet, NULL, NULL, &tm);
-			if (ret <= 0) {
+			if (ret <= 0 && !FD_ISSET(iter->first, &readSet)) {
+				std::cout << "recv skip fd:" << iter->first << std::endl;
 				continue;
 			}
 			// inet_ntoa(iter->second.sin_addr);
 			int msgSize = 0;
 			do {
 				ret = recv(iter->first, (char*)&img + msgSize, sizeof(img) - msgSize, 0);
-				if (ret < 0) {
-					return 0;
+				if (ret <= 0) {
+					std::cout << "recv fd:" << iter->first << ":" << msgSize << std::endl;
+					iter = m_cli.erase(iter);
+					break;
 				}
 				msgSize += ret;
 			} while (msgSize < sizeof(img));
 			return msgSize;
+		}
+		if (m_cli.size() == 0){
+			// sem_wait(&sem);
+			WaitForSingleObject(sem, INFINITE);
 		}
 		return 0;
 	}
@@ -215,7 +233,7 @@
 	int TcpClient::Recv(TcpPackage& img)
 	{
 		fd_set readSet;
-		struct timeval tm = { 0,30 };
+		struct timeval tm = { 3,30 };
 		int ret;
 		FD_ZERO(&readSet);
 		FD_SET(sock, &readSet);
@@ -387,12 +405,13 @@
 		TcpPackage tp;
 		TcpChat* tc = (TcpChat*)arg;
 		while (1) {
+			std::cout << __FUNCTION__ << std::endl;
 			ret = tc->svr.Recv(tp);
 			if (ret > 0) {
 				*(tc->img) = tp;
-				strcpy_s(tp.buf, "XXXXXXXXX");
+				tp.size = sizeof(TcpPackage) - 4;
+				strcpy_s(tp.buf, "XX");
 				SendText(tp);
 			}
-			Sleep(111);
 		}
 	}

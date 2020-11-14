@@ -4,6 +4,7 @@
 #include <string>
 #include <winsock.h>
 #include <map>
+// #include <semaphore.h>
 
 #define CAMERA_WIDTH 320
 #define CAMERA_HEIGHT 240
@@ -21,6 +22,7 @@ class TcpServer
 	struct sockaddr_in servAddr;
 	SOCKET serverSocket;
 	std::map<SOCKET, struct sockaddr_in> m_cli;
+	HANDLE sem;
 public:
 	int Init(int p = 3000);
 
