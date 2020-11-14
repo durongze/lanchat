@@ -22,9 +22,11 @@ class TcpServer
 	SOCKET serverSocket;
 	std::map<SOCKET, struct sockaddr_in> m_cli;
 public:
-	int Init();
+	int Init(int p = 3000);
 
 	int Accept();
+
+	int Recv(TcpPackage& img);
 
 	int Send(const TcpPackage& img);
 
@@ -52,6 +54,7 @@ public:
 	int Connect();
 	int DisConnect();
 	int Recv(TcpPackage& img);
+	int Send(TcpPackage& img);
 	int TransBitMap(const TcpPackage& img, HBITMAP& hbitmap);
 	int Uninit();
 };
@@ -59,20 +62,22 @@ public:
 class TcpChat {
 	TcpChat();
 public:
-	TcpChat::~TcpChat();
+	~TcpChat();
 	static TcpChat *GetInstance();
 	static int SetRemoteSvr(std::string ip = "127.0.0.1", int port = 8888);
 	static int ConnectRemoteSvr(DWORD *arg);
 	static int DisConnectRemoteSvr(DWORD *arg);
 	int Init(FuncDrawWin drawWin);
 	static int Accept(DWORD *arg);
-	HBITMAP ReadImage(wchar_t *path);
+	HBITMAP ReadImage(LPCWSTR path);
 
 	static int SendImage(DWORD *arg);
 	static int RecvImage(DWORD *arg);
 	static int TransBitMap(HBITMAP& hbitmap);
 	static int SendText(TcpPackage& arg);
 	static int RecvText(TcpPackage& arg);
+	static int SendTextCtx(TcpPackage* arg);
+	static int RecvTextCtx(DWORD* arg);
 	int SetFuncDrawWin(FuncDrawWin drawWin);
 private:
 	TcpServer svr;

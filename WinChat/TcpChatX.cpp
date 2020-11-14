@@ -3,7 +3,7 @@
 
 #pragma comment(lib,"Ws2_32.lib ")
 
-	int TcpServer::Init()
+	int TcpServer::Init(int p)
 	{
 		if (WSAStartup(MAKEWORD(2, 2), &wsaData))
 		{
@@ -21,7 +21,7 @@
 		memset(&servAddr, 0, sizeof(servAddr));
 		servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		servAddr.sin_family = AF_INET;
-		servAddr.sin_port = htons(3000);
+		servAddr.sin_port = htons(p);
 		/* 绑定服务器套接字 */
 		if (::bind(serverSocket, (sockaddr*)&servAddr, sizeof(sockaddr)) == SOCKET_ERROR)
 		{
@@ -51,6 +51,34 @@
 				Sleep(111);
 			}
 			m_cli.insert(std::make_pair(clientSocket, cliAddr));
+		}
+		return 0;
+	}
+
+	int TcpServer::Recv(TcpPackage& img)
+	{
+		fd_set readSet;
+		struct timeval tm = { 0,30 };
+		int ret;
+		std::map<SOCKET, struct sockaddr_in>::iterator iter;
+		for (iter = m_cli.begin(); iter != m_cli.end(); ++iter)
+		{
+			FD_ZERO(&readSet);
+			FD_SET(iter->first, &readSet);
+			ret = select(iter->first + 1, &readSet, NULL, NULL, &tm);
+			if (ret <= 0) {
+				continue;
+			}
+			// inet_ntoa(iter->second.sin_addr);
+			int msgSize = 0;
+			do {
+				ret = recv(iter->first, (char*)&img + msgSize, sizeof(img) - msgSize, 0);
+				if (ret < 0) {
+					return 0;
+				}
+				msgSize += ret;
+			} while (msgSize < sizeof(img));
+			return msgSize;
 		}
 		return 0;
 	}
@@ -191,7 +219,7 @@
 		int ret;
 		FD_ZERO(&readSet);
 		FD_SET(sock, &readSet);
-		ret = select(sock + 1, NULL, &readSet, NULL, &tm);
+		ret = select(sock + 1, &readSet, NULL, NULL, &tm);
 		if (ret <= 0) {
 			return 0;
 		}
@@ -205,6 +233,21 @@
 		} while (msgSize < sizeof(img));
 		return msgSize;
 	}
+
+	int TcpClient::Send(TcpPackage& img)
+	{
+		fd_set writeSet;
+		struct timeval tm = { 0,30 };
+		int ret;
+		FD_ZERO(&writeSet);
+		FD_SET(sock, &writeSet);
+		ret = select(sock + 1, NULL, &writeSet, NULL, &tm);
+		if (ret <= 0) {
+			return 0;
+		}
+		return send(sock, (char*)&img, sizeof(img), NULL);
+	}
+
 	int TcpClient::TransBitMap(const TcpPackage& img, HBITMAP& hbitmap)
 	{
 		BITMAPINFOHEADER* bi = (BITMAPINFOHEADER*)img.buf;
@@ -258,7 +301,7 @@
 		TcpChat* tc = (TcpChat*)arg;
 		return tc->svr.Accept();
 	}
-	HBITMAP TcpChat::ReadImage(wchar_t *path)
+	HBITMAP TcpChat::ReadImage(LPCWSTR path)
 	{
 		return (HBITMAP)LoadImage(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	}
@@ -331,3 +374,25 @@
 		return ret;
 	}
 
+	int TcpChat::SendTextCtx(TcpPackage *tp)
+	{
+		int ret;
+		ret = tc->cli.Send(*tp);
+		return ret;
+	}
+
+	int TcpChat::RecvTextCtx(DWORD* arg)
+	{
+		int ret;
+		TcpPackage tp;
+		TcpChat* tc = (TcpChat*)arg;
+		while (1) {
+			ret = tc->svr.Recv(tp);
+			if (ret > 0) {
+				*(tc->img) = tp;
+				strcpy_s(tp.buf, "XXXXXXXXX");
+				SendText(tp);
+			}
+			Sleep(111);
+		}
+	}

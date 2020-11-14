@@ -439,6 +439,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
+#if 0
 	std::fstream fsNum;
 	Octree oct(3);
 
@@ -460,6 +461,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	oct.PickupNumber(num, pow(8,3) - 2, fsOct);
 	num.Dump(fsOct);
 	fsOct.close();
+#endif
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 	snprintf(GrbBuffer.gitdir, sizeof(GrbBuffer.gitdir), "%s", "china.gif");
@@ -486,7 +488,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->Accept, tc, 0, &threadId);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->SendImage, tc, 0, &threadId);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->RecvImage, tc, 0, &threadId);
-
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->RecvTextCtx, tc, 0, &threadId);
     MSG msg;
 
     // 主消息循环: 
@@ -591,6 +593,7 @@ int HandleCmdSend()
 {
 	TcpPackage msg = { 0 };
 	GetWindowText(g_hSendMsg, (wchar_t*)msg.buf, sizeof(msg.buf));
+	msg.size = lstrlen((LPCWSTR)msg.buf) * 2;
 	int ret = TcpChat::GetInstance()->SendText(msg);
 	if (ret > 0) AppendToMsgBrowser(msg);
 	return 0;
