@@ -407,9 +407,10 @@
 			ret = tc->svr.Recv(tp);
 			if (ret > 0) {
 				*(tc->img) = tp;
-				tp.size = sizeof(TcpPackage) - 4;
-				strcpy_s(tp.buf, "XX");
-				SendText(tp);
+				if (tc->funcDrawWin) {
+					tc->funcDrawWin(&tp);
+					SendText(tp);
+				}
 			}
 		}
 	}
