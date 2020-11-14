@@ -21,8 +21,13 @@ typedef struct {
     char buf[CAMERA_WIDTH * CAMERA_HEIGHT * 4 + BITMAPINFOHEADER_SIZE];
 }TcpPackage;
 
-int main()
+int main(int argc, char** argv)
 {
+    if (argc != 2)
+    {
+        std::cout << argv[0] << " < cmd > " << std::endl;
+        return -1;
+    }
     int domain = AF_INET;
     int type = SOCK_STREAM;
     int protocol = IPPROTO_TCP;
@@ -35,7 +40,8 @@ int main()
     struct sockaddr *addr = (struct sockaddr*)&servAddr;
     socklen_t addrlen  = sizeof(servAddr);
 
-    TcpPackage img = {sizeof(TcpPackage) - 4, "ssssssss"};
+    TcpPackage img = {sizeof(TcpPackage) - 4, {0}};
+    strncpy(img.buf, argv[1], strlen(argv[1]));
 
     int sockfd = socket(domain, type, protocol);
     if (sockfd < 0) {
