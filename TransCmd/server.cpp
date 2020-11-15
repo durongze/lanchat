@@ -5,6 +5,7 @@
 #include "TcpChatX.h"
 
 #define ENV_NAME_PATH "PATH"
+#define ADB_HOME "D:\\Android\\sdk\\tools\\platform-tools"
 #define NDK_TOOL_HOME "D:\\Android\\ndk\\android-ndk-r19c\\toolchains\\"
 #define AARCH64_HOME NDK_TOOL_HOME "aarch64-linux-android-4.9\\"
 #define AARCH64_PATH AARCH64_HOME "prebuilt\\windows-x86_64\\bin"
@@ -44,6 +45,8 @@ int SetEnvCfg()
 	pathVal += getenv(ENV_NAME_PATH);
 	pathVal += ";";
 	pathVal += AARCH64_PATH;
+	pathVal += ";";
+	pathVal += ADB_HOME;
 	putenv(pathVal.c_str());
 	return 0;
 }
