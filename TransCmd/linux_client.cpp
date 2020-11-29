@@ -17,7 +17,7 @@
 #define DEF_PORT 3000
 
 typedef struct {
-    long size;
+    int size; // 要保持一致
     char buf[CAMERA_WIDTH * CAMERA_HEIGHT * 4 + BITMAPINFOHEADER_SIZE];
 }TcpPackage;
 
