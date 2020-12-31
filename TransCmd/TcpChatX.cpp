@@ -22,9 +22,13 @@
 		servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		servAddr.sin_family = AF_INET;
 		servAddr.sin_port = htons(p);
+		char val = 1;
+		setsockopt(serverSocket,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 		/* 绑定服务器套接字 */
 		if (::bind(serverSocket, (sockaddr*)&servAddr, sizeof(sockaddr)) == SOCKET_ERROR)
 		{
+			closesocket(serverSocket);
+			WSACleanup();
 			return -3;
 		}
 
@@ -86,6 +90,7 @@
 				ret = recv(iter->first, (char*)&img + msgSize, sizeof(img) - msgSize, 0);
 				if (ret <= 0) {
 					std::cout << "recv fd:" << iter->first << ":" << msgSize << std::endl;
+					closesocket(iter->first);
 					iter = m_cli.erase(iter);
 					break;
 				}
@@ -307,8 +312,11 @@
 	}
 	int TcpChat::Init(FuncDrawWin drawWin)
 	{
-		svr.Init();
-		cli.Init();
+		int ret = 0;
+		ret = svr.Init();
+		std::cout << typeid(this).name() << "::" << __FUNCTION__ << ret << std::endl;
+		ret = cli.Init();
+		std::cout << typeid(this).name() << "::" << __FUNCTION__ << ret << std::endl;
 		SetFuncDrawWin(drawWin);
 		return 0;
 	}
@@ -403,8 +411,8 @@
 		TcpPackage tp;
 		TcpChat* tc = (TcpChat*)arg;
 		while (1) {
-			std::cout << __FUNCTION__ << std::endl;
 			ret = tc->svr.Recv(tp);
+			std::cout << __FUNCTION__ << ret << std::endl;
 			if (ret > 0) {
 				*(tc->img) = tp;
 				if (tc->funcDrawWin) {

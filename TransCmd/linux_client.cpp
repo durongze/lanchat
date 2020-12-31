@@ -59,7 +59,7 @@ int main(int argc, char** argv)
         // return -1;
     }
     ret = recv(sockfd, (char*)&img, sizeof(img), 0);
-    std::cout << "msg:" << img.buf << std::endl;
+    std::cout << "msg: " << img.buf << std::endl;
     close(sockfd);
     return 0;
 }
