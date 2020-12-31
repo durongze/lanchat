@@ -50,13 +50,15 @@ int main(int argc, char** argv)
     }
     int ret = connect(sockfd, addr, addrlen);
     if (ret < 0) {
+        close(sockfd);
         perror("connect");
         return -1;
     }
     ret = send(sockfd, (char*)&img, sizeof(img), NULL);
     if (ret <= 0) {
+        close(sockfd);
         perror("send");
-        // return -1;
+        return -1;
     }
     ret = recv(sockfd, (char*)&img, sizeof(img), 0);
     std::cout << "msg: " << img.buf << std::endl;
