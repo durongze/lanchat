@@ -1,3 +1,12 @@
+all:detect
+
+detect:
+	g++ -o detect detect.cpp -lpthread 
+
+clean:
+	rm detect
+
+
 CPP_SRCS=TcpChatX.cpp
 
 CLIENT_SRCS=client.cpp
