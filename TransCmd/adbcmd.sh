@@ -53,6 +53,29 @@ function SwipeScreen()
     $PushClient "\"adb shell input swipe $x2 $y2 $x1 $y1\""
 }
 
-PressPower
+function ProcProps()
+{
+    cmd="$1"
+    props="$2"
+    val="$3"  
+    if [[ $cmd == "1" ]];then
+        cmd="setprop"
+    else
+        cmd="getprop"
+        val=""
+    fi
+    for prop in $props
+    do
+        echo $PushClient "\"adb shell $cmd $prop $val\""
+        $PushClient "\"adb shell $cmd $prop $val\""
+    done
+}
+
+Props="debug.mdpcomp.logs persist.camera.debug.logfile persist.data.qmi.adb_logmask"
+Val="0"
+
+ProcProps "1" "$Props" "$Val"
+
+#PressPower
 #InputWords
-SwipeScreen "100" "100" "10" "10"
+#SwipeScreen "100" "100" "10" "10"
