@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <unistd.h>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -24,6 +26,7 @@ class Detect{
                     std::cout << typeid(this).name() << "\033[31m::" << __FUNCTION__ << " empty\033[0m" << std::endl;
                     exit(1);
                 } else {
+                    sleep(1);
                     std::cout << typeid(this).name() << "\033[32m::" << __FUNCTION__ << " full\033[0m" << std::endl;
                 }
                 // isEmpty = 0;
@@ -36,10 +39,10 @@ class Detect{
         
         int Input()
         {
-            while(1) { 
+            while(!prepared) { 
                 std::unique_lock<std::mutex> lk(m);
                 cv.wait(lk,[this]{return !prepared;});
-                isEmpty = 0;//((rand() % 10) == 0);
+                isEmpty = ((rand() % 77) == 0);
                 if (isEmpty) {
                     std::cout << typeid(this).name() << "\033[31m::" << __FUNCTION__ << " empty\033[0m" << std::endl;
                 } else {
@@ -65,7 +68,7 @@ int main(int argc, char** argv)
     d.Init();
     while(1) {
         d.Input();
-        std::cout << "\033[33m:::::::::::::::::::::::::::::::::::\033[0m" << std::endl;
+        //std::cout << "\033[33m:::::::::::::::::::::::::::::::::::\033[0m" << std::endl;
     }
     return 0;
 }

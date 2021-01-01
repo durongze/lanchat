@@ -1,4 +1,4 @@
-all:detect
+all:detect default
 
 detect:
 	g++ -o detect detect.cpp -lpthread 
@@ -24,7 +24,7 @@ CPP_FLAGS=-fpermissive
 
 default: 
 	g++ -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
-	g++ -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
+	g++ -o svrr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
  
 clean:
 	rm *.o
