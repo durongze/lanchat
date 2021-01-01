@@ -1,20 +1,21 @@
 #!/bin/bash
 
-PushClient="./cli"
+PushClient="adbself"
 
 function InputWords()
 {
-    declare -A sermap=(["1"]="A"
-                       ["2"]="B"
-                       ["3"]="C"
-                       ["4"]="D"
-                       ["5"]="E"
-                       ["6"]="F"
-                       ["7"]="G"
-                       ["8"]="H"
-                       ["9"]="I"
-                       ["A"]="J"
-                       ["B"]="K")
+    declare -A sermap=(["A"]="*"
+                       ["B"]="#"
+                       ["C"]="*"
+                       ["D"]="#"
+                       ["E"]="7"
+                       ["F"]="7"
+                       ["G"]="7"
+                       ["H"]="7"
+                       ["I"]="#"
+                       ["J"]="*"
+                       ["K"]="#"
+                       ["L"]="*"  )
                        #["\\"]="/")
     for k in ${!sermap[@]}
     do 
