@@ -22,7 +22,7 @@ ParseTagFile $1
 function ParseProperty()
 {
     PropFile=$1
-    PropList=$(grep "etProperty" $PropFile|cut -d'(' -f3|cut -d')' -f1|cut -d',' -f1)
+    PropList=$(grep "etProperty" $PropFile|cut -d'(' -f3|cut -d')' -f1|cut -d',' -f1|sort -su)
 
 }
 
