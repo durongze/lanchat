@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <winsock.h>
 #include <map>
 #include "TcpChatX.h"
 
@@ -56,8 +55,14 @@ int main()
 	DWORD threadId;
 	TcpChat *tc = TcpChat::GetInstance();
 	tc->Init(DrawWindowRegon);
+#ifdef _WIN32
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->Accept, tc, 0, &threadId);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->RecvTextCtx, tc, 0, &threadId);
-	getchar();
+#else
+    pthread_t pid;
+    pthread_create(&pid, NULL, tc->Accept, tc);
+    pthread_create(&pid, NULL, tc->RecvTextCtx, tc);
+#endif
+    getchar();
 	return 0;
 }

@@ -1,7 +1,9 @@
-﻿#include <winsock2.h>
-#include "TcpChatX.h"
+﻿#include "TcpChatX.h"
 #include <iostream>
+
+#ifdef _WIN32
 #pragma comment(lib,"ws2_32.lib ")
+#endif
 
 	int TcpServer::Init(int p)
 	{
@@ -55,7 +57,7 @@
 			clientSocket = accept(serverSocket, (sockaddr*)&cliAddr, &len);
 			if (clientSocket == INVALID_SOCKET)
 			{
-				Sleep(111);
+				sleep(111);
 			} else {
 				// BOOL bSet = TRUE;
 				// setsockopt(clientSocket, SOL_SOCKET, SO_KEEPALIVE, (const char*)&bSet, sizeof(BOOL));
@@ -271,12 +273,14 @@
 
 	int TcpClient::TransBitMap(const TcpPackage& img, HBITMAP& hbitmap)
 	{
+#ifdef _WIN32
 		BITMAPINFOHEADER* bi = (BITMAPINFOHEADER*)img.buf;
 		BYTE* bits = (BYTE*)img.buf + sizeof(BITMAPINFOHEADER);
 		hbitmap = CreateBitmap(bi->biWidth, bi->biHeight, bi->biPlanes, bi->biBitCount, bits);
 		if (hbitmap == NULL) {
 			return -1;
 		}
+#endif
 		return 0;
 	}
 
@@ -327,7 +331,11 @@
 	}
 	HBITMAP TcpChat::ReadImage(LPCSTR path)
 	{
+#ifdef _WIN32
 		return (HBITMAP)LoadImage(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+#else
+        return 0;
+#endif
 	}
 
 	int TcpChat::SendImage(DWORD *arg)
@@ -339,6 +347,7 @@
 		POINT mouse;
 		BITMAP bm;
 		while (1) {
+#ifdef _WIN32
 			GetCursorPos(&mouse);
 			HDC hdcDesk = GetDC(GetDesktopWindow()); // 得到屏幕的dc    
 			HDC hdcCopy = CreateCompatibleDC(hdcDesk); //  GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)
@@ -349,13 +358,14 @@
 			GetObject(hcopy, sizeof(bm), &bm);
 			ret = tc->svr.Send(bm);
 			if (ret > 0) {
-				Sleep(1);
+				sleep(1);
 			}
 			DeleteObject(hBitmap);
 			DeleteObject(hcopy);
 			DeleteObject(hObj);
 			DeleteDC(hdcDesk);
-			Sleep(111);
+#endif
+            sleep(111);
 		}
 	}
 	int TcpChat::RecvImage(DWORD *arg)
@@ -365,6 +375,7 @@
 		HBITMAP bitmap;
 		TcpChat* tc = (TcpChat*)arg;
 		while (1) {
+#ifdef _WIN32
 			ret = tc->cli.Recv(tp);
 			if (ret > 0) {
 				*(tc->img) = tp;
@@ -374,7 +385,8 @@
 				}
 				DeleteObject(bitmap);
 			}
-			Sleep(111);
+#endif
+			sleep(111);
 		}
 		return ret;
 	}

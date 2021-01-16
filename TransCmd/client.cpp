@@ -2,7 +2,6 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
-#include <winsock.h>
 #include <map>
 #include "TcpChatX.h"
 
