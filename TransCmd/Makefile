@@ -7,7 +7,7 @@ deamon:
 
 
 
-CPP_SRCS=TcpChatX.cpp
+CPP_SRCS=TcpChatX.cpp dump.cpp
 
 CLIENT_SRCS=client.cpp
 
@@ -36,6 +36,6 @@ CPP_FLAGS=-fpermissive
 default: 
 	g++ -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
 	g++ -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
- 
+
 clean:
 	rm *.o cli svr detect deamon

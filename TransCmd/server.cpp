@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include "TcpChatX.h"
+#include "dump.h"
 
 #define ENV_NAME_PATH "PATH"
 #define ADB_HOME "D:\\Android\\sdk\\tools\\platform-tools"
@@ -49,7 +50,7 @@ int SetEnvCfg()
 	putenv(pathVal.c_str());
 	return 0;
 }
-int main()
+int main(int argc, char** argv)
 {
 	SetEnvCfg();
 	DWORD threadId;
@@ -64,5 +65,14 @@ int main()
     pthread_create(&pid, NULL, tc->RecvTextCtx, tc);
 #endif
     getchar();
+
+    struct stat statbuf = {0};
+    stat(argv[1], &statbuf);
+    FILE *fp = fopen(argv[1], "r");
+    char *ctx = (char *)malloc(statbuf.st_size);
+    fread(ctx, statbuf.st_size, 1, fp);
+    DYZLogHexString(1, ctx, statbuf.st_size);
+    free(ctx);
+    fclose(fp);
 	return 0;
 }
