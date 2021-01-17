@@ -1,10 +1,10 @@
-all:detect default
+all:detect default deamon
 
 detect:
 	g++ -o detect detect.cpp -lpthread 
+deamon:
+	g++ -o deamon deamon.cpp -lpthread 
 
-clean:
-	rm detect
 
 
 CPP_SRCS=TcpChatX.cpp
@@ -38,4 +38,4 @@ default:
 	g++ -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
  
 clean:
-	rm *.o cli svr detect
+	rm *.o cli svr detect deamon
