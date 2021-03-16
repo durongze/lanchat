@@ -1,11 +1,14 @@
-all:detect default deamon
+CC=gcc
+CPP=g++
+
+CPP_FLAGS=-g -fpermissive
+
+all:detect deamon default
 
 detect:
-	g++ -g -o detect detect.cpp -lpthread 
+	$(CPP) -o detect ${CPP_FLAGS} detect.cpp -lpthread 
 deamon:
-	g++ -g -o deamon deamon.cpp -lpthread 
-
-
+	$(CPP) -o deamon ${CPP_FLAGS} deamon.cpp -lpthread 
 
 CPP_SRCS=TcpChatX.cpp dump.cpp
 
@@ -31,11 +34,10 @@ ifeq ($(OS),Linux)
 	LIBS=-lpthread -ldl
 endif
 
-CPP_FLAGS=-fpermissive
 
 default: 
-	g++ -g -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
-	g++ -g -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
+	$(CPP) -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
+	$(CPP) -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
 
 clean:
 	rm *.o cli svr detect deamon
