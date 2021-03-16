@@ -1,9 +1,9 @@
 all:detect default deamon
 
 detect:
-	g++ -o detect detect.cpp -lpthread 
+	g++ -g -o detect detect.cpp -lpthread 
 deamon:
-	g++ -o deamon deamon.cpp -lpthread 
+	g++ -g -o deamon deamon.cpp -lpthread 
 
 
 
@@ -34,8 +34,8 @@ endif
 CPP_FLAGS=-fpermissive
 
 default: 
-	g++ -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
-	g++ -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
+	g++ -g -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
+	g++ -g -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
 
 clean:
 	rm *.o cli svr detect deamon
