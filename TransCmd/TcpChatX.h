@@ -1,8 +1,9 @@
 ﻿#ifndef __TCP_CHAT__
 #define __TCP_CHAT__
 
+#include "mysys.h"
+#include <cstring>
 #include <string>
-#include <winsock.h>
 #include <map>
 #include <semaphore.h>
 

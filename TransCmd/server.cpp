@@ -1,14 +1,32 @@
 #include <iostream>
 #include <string>
-#include <winsock.h>
 #include <map>
 #include "TcpChatX.h"
+#include "dump.h"
 
-#define ENV_NAME_PATH "PATH"
-#define ADB_HOME "D:\\Android\\sdk\\tools\\platform-tools"
-#define NDK_TOOL_HOME "D:\\Android\\ndk\\android-ndk-r19c\\toolchains\\"
-#define AARCH64_HOME NDK_TOOL_HOME "aarch64-linux-android-4.9\\"
-#define AARCH64_PATH AARCH64_HOME "prebuilt\\windows-x86_64\\bin"
+#ifdef _WIN32
+#define PATH_SEP ";"
+#define DIR_SEP "\\"
+#define USER_HOME "D:"
+#define NDK_VER "android-ndk-r19c" 
+#define SYSTEM_DIR "windows-x86_64" 
+#else
+#define PATH_SEP ":"
+#define DIR_SEP "/"
+#define USER_HOME "/home/du"
+#define NDK_VER "22.0.7026061"
+#define SYSTEM_DIR "linux-x86_64"
+#endif
+
+#define ENV_NAME_PATH     "PATH"
+#define ANDROID_USER_PATH USER_HOME DIR_SEP "Android" DIR_SEP
+
+#define ADB_TOOL_HOME ANDROID_USER_PATH "Sdk" DIR_SEP "platform-tools" 
+#define SDK_TOOL_HOME ANDROID_USER_PATH "Sdk" DIR_SEP "tools"            DIR_SEP "bin" DIR_SEP
+#define NDK_TOOL_HOME ANDROID_USER_PATH "Sdk" DIR_SEP "ndk" DIR_SEP NDK_VER DIR_SEP "toolchains"  DIR_SEP
+
+#define AARCH64_HOME  NDK_TOOL_HOME "aarch64-linux-android-4.9" DIR_SEP 
+#define AARCH64_PATH  AARCH64_HOME  "prebuilt" DIR_SEP SYSTEM_DIR DIR_SEP "bin"
 
 int _System(const char *cmd, char *pRetMsg, int msgLen)
 {
@@ -43,21 +61,41 @@ int SetEnvCfg()
 	std::string pathVal = ENV_NAME_PATH;
 	pathVal += "=";
 	pathVal += getenv(ENV_NAME_PATH);
-	pathVal += ";";
+	pathVal += PATH_SEP;
 	pathVal += AARCH64_PATH;
-	pathVal += ";";
-	pathVal += ADB_HOME;
+	pathVal += PATH_SEP;
+	pathVal += ADB_TOOL_HOME;
+	pathVal += PATH_SEP;
+	pathVal += NDK_TOOL_HOME;
+	pathVal += PATH_SEP;
+	pathVal += SDK_TOOL_HOME;
 	putenv(pathVal.c_str());
+    std::cout << pathVal.c_str() << std::endl;
 	return 0;
 }
-int main()
+int main(int argc, char** argv)
 {
-	SetEnvCfg();
+	// SetEnvCfg();
 	DWORD threadId;
 	TcpChat *tc = TcpChat::GetInstance();
 	tc->Init(DrawWindowRegon);
+#ifdef _WIN32
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->Accept, tc, 0, &threadId);
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tc->RecvTextCtx, tc, 0, &threadId);
-	getchar();
+#else
+    pthread_t pid;
+    pthread_create(&pid, NULL, tc->Accept, tc);
+    pthread_create(&pid, NULL, tc->RecvTextCtx, tc);
+#endif
+    getchar();
+
+    struct stat statbuf = {0};
+    stat(argv[1], &statbuf);
+    FILE *fp = fopen(argv[1], "r");
+    char *ctx = (char *)malloc(statbuf.st_size);
+    fread(ctx, statbuf.st_size, 1, fp);
+    DYZLogHexString(1, ctx, statbuf.st_size);
+    free(ctx);
+    fclose(fp);
 	return 0;
 }

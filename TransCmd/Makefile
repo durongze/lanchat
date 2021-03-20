@@ -1,13 +1,16 @@
-all:detect default
+CC=gcc
+CPP=g++
+
+CPP_FLAGS=-g -fpermissive
+
+all:detect deamon default
 
 detect:
-	g++ -o detect detect.cpp -lpthread 
+	$(CPP) -o detect ${CPP_FLAGS} detect.cpp -lpthread 
+deamon:
+	$(CPP) -o deamon ${CPP_FLAGS} deamon.cpp -lpthread 
 
-clean:
-	rm detect
-
-
-CPP_SRCS=TcpChatX.cpp
+CPP_SRCS=TcpChatX.cpp dump.cpp
 
 CLIENT_SRCS=client.cpp
 
@@ -17,14 +20,24 @@ INC_DIRS=-I.
 
 LIB_DIRS=-L /E/msys64/mingw64/x86_64-w64-mingw32/lib
 #LIB_DIRS=-L /E/msys64/mingw32/i686-w64-mingw32/lib
+ifeq ($(shell uname), Linux)
+	OS=Linux
+else
+	OS=Windows
+endif
 
-LIBS=-lpthread -lwsock32 -lws2_32 -lgdi32
+ifeq ($(OS),Windows)
+	LIBS=-lpthread -lwsock32 -lws2_32 -lgdi32
+endif
 
-CPP_FLAGS=-fpermissive
+ifeq ($(OS),Linux)
+	LIBS=-lpthread -ldl
+endif
+
 
 default: 
-	g++ -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
-	g++ -o svrr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
- 
+	$(CPP) -o cli ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${CLIENT_SRCS} ${LIBS}
+	$(CPP) -o svr ${CPP_FLAGS} ${INC_DIRS} ${LIB_DIRS} ${CPP_SRCS} ${SERVER_SRCS} ${LIBS}
+
 clean:
-	rm *.o
+	rm *.o cli svr detect deamon
