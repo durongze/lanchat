@@ -17,6 +17,10 @@ DsnAdapter::~DsnAdapter()
 int DsnAdapter::Init()
 {
 	std::vector<ProcMod> mods;
+	int m;
+	for (m = PROC_MOD_IMG; PROC_MOD_PNG >= m; ++m) {
+		mods.push_back((ProcMod)m);
+	}
 	m_modCtx->Init(mods);
 	return 0;
 }
