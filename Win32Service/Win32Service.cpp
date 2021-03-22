@@ -12,13 +12,13 @@
 #define  SERVICE_DSP_NAME _T("DrzTestDsp")
 #define	 SERVICE_LOG_NAME _T("DrzLog.log")
 
-#ifdef LOG_FUNC
+#ifndef LOG_FUNC
 #define DrzWriteLog(x, ...)  do {          \
 	TCHAR tcInMsg[MAX_PATH];               \
 	ZeroMemory(tcInMsg, sizeof(tcInMsg));  \
-	_stprintf_s(tcInMsg, _countof(tcInMsg), SERVICE_DSP_NAME _T(x), __VA_ARGS__); \
+	_stprintf_s(tcInMsg, _countof(tcInMsg), _T(x), ## __VA_ARGS__); \
 	WriteLog(tcLogPath, tcInMsg);          \
-} while(1)
+} while(0)
 #else
 #define DrzWriteLog printf
 #endif
@@ -39,21 +39,20 @@ SERVICE_TABLE_ENTRY		lpServiceStartTable[] =
 TCHAR* GetLogPath(_TCHAR *Program)
 {
 	ZeroMemory(tcLogPath, sizeof(tcLogPath));
-	if (Program != NULL) {
-		_tcscpy_s(tcLogPath, _countof(tcLogPath), Program);
-		::PathRemoveFileSpec(tcLogPath);
-		_tcscat_s(tcLogPath, _countof(tcLogPath), _T("\\"));
-		_tcscat_s(tcLogPath, _countof(tcLogPath), SERVICE_LOG_NAME);
-	}
-	else {
-		if (::GetModuleFileName(NULL, tcLogPath, _countof(tcLogPath)))
-		{
-			::PathRemoveFileSpec(tcLogPath);
-			_tcscat_s(tcLogPath, _countof(tcLogPath), _T("\\"));
-			_tcscat_s(tcLogPath, _countof(tcLogPath), SERVICE_LOG_NAME);
-		}
-	}
+	GetModuleFileName(NULL, tcLogPath, _countof(tcLogPath));
+	::PathRemoveFileSpec(tcLogPath);
+	_tcscat_s(tcLogPath, _countof(tcLogPath), _T("\\"));
+	_tcscat_s(tcLogPath, _countof(tcLogPath), SERVICE_LOG_NAME);
 	return tcLogPath;
+}
+
+TCHAR* GetSrvPath(_TCHAR* Program)
+{
+	ZeroMemory(tcSrvPath, sizeof(tcSrvPath));
+	GetModuleFileName(NULL, tcSrvPath, _countof(tcSrvPath));
+	::PathRemoveFileSpec(tcSrvPath);
+	_tcscat_s(tcSrvPath, _countof(tcSrvPath), _T("\\"));
+	return tcSrvPath;
 }
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -66,8 +65,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	InitializeCriticalSection(&m_Critical);
 
 	GetLogPath(argv[0]);
-
-	_tcscpy_s(tcSrvPath, _countof(tcSrvPath), argv[0]);
+	GetSrvPath(argv[0]);
 	if (0 == _tcsncmp(tcCmdLine, _T("-install"), sizeof(_T("-install"))))//Service Install Stuff
 	{
 		DrzWriteLog("Service Install Start!\n");
@@ -308,8 +306,9 @@ void StartServiceProcess()
 {
 	while (1)
 	{
-		::WinExec(("cmd.exe"), SW_HIDE);
+		// ::WinExec(("cmd.exe"), SW_HIDE);
 		Sleep(10*1000);
+		DrzWriteLog("StartServiceProcess\n");
 	}
 }
 
