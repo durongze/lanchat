@@ -12,12 +12,16 @@
 #define  SERVICE_DSP_NAME _T("DrzTestDsp")
 #define	 SERVICE_LOG_NAME _T("DrzLog.log")
 
+#ifdef LOG_FUNC
 #define DrzWriteLog(x, ...)  do {          \
 	TCHAR tcInMsg[MAX_PATH];               \
 	ZeroMemory(tcInMsg, sizeof(tcInMsg));  \
 	_stprintf_s(tcInMsg, _countof(tcInMsg), SERVICE_DSP_NAME _T(x), __VA_ARGS__); \
 	WriteLog(tcLogPath, tcInMsg);          \
 } while(1)
+#else
+#define DrzWriteLog printf
+#endif
 
 CRITICAL_SECTION m_Critical;
 TCHAR tcLogPath[MAX_PATH];
@@ -34,8 +38,8 @@ SERVICE_TABLE_ENTRY		lpServiceStartTable[] =
 
 TCHAR* GetLogPath(_TCHAR *Program)
 {
+	ZeroMemory(tcLogPath, sizeof(tcLogPath));
 	if (Program != NULL) {
-		ZeroMemory(tcLogPath, sizeof(tcLogPath));
 		_tcscpy_s(tcLogPath, _countof(tcLogPath), Program);
 		::PathRemoveFileSpec(tcLogPath);
 		_tcscat_s(tcLogPath, _countof(tcLogPath), _T("\\"));
@@ -130,6 +134,7 @@ void InstallService(TCHAR* pSrvPath, TCHAR* pSrvName)
 
 BOOL KillService(TCHAR* pSrvName) 
 { 
+	BOOL ret = FALSE;
 	// kill service with given name
 	SC_HANDLE schSCManager = OpenSCManager( NULL, NULL, SC_MANAGER_ALL_ACCESS); 
 	if (schSCManager==0) 
@@ -150,9 +155,7 @@ BOOL KillService(TCHAR* pSrvName)
 			SERVICE_STATUS status;
 			if(ControlService(schService,SERVICE_CONTROL_STOP,&status))
 			{
-				CloseServiceHandle(schService); 
-				CloseServiceHandle(schSCManager); 
-				return TRUE;
+				ret = TRUE;
 			}
 			else
 			{
@@ -162,7 +165,7 @@ BOOL KillService(TCHAR* pSrvName)
 		}
 		CloseServiceHandle(schSCManager); 
 	}
-	return FALSE;
+	return ret;
 }
 
 void UnInstallService(TCHAR* pSrvName)
@@ -198,6 +201,7 @@ void UnInstallService(TCHAR* pSrvName)
 
 BOOL RunService(TCHAR* pSrvName) 
 { 
+	BOOL ret = FALSE;
 	// run service with given name
 	SC_HANDLE schSCManager = OpenSCManager( NULL, NULL, SC_MANAGER_ALL_ACCESS); 
 	if (schSCManager==0) 
@@ -217,10 +221,7 @@ BOOL RunService(TCHAR* pSrvName)
 			// call StartService to run the service
 			if(StartService(schService, 0, (const TCHAR**)NULL))
 			{
-				DrzWriteLog("@FUNC--StartService success, error code = %d\n", GetLastError());
-				CloseServiceHandle(schService); 
-				CloseServiceHandle(schSCManager); 
-				return TRUE;
+				ret = TRUE;
 			}
 			else
 			{
@@ -230,7 +231,7 @@ BOOL RunService(TCHAR* pSrvName)
 		}
 		CloseServiceHandle(schSCManager); 
 	}
-	return FALSE;
+	return ret;
 }
 
 void ExecuteSubProcess()
