@@ -5,21 +5,19 @@
 class Number
 {
 public:
-	Number(int type, int value, unsigned int bitNum = sizeof(int) * 8);
+	Number(int value);
 	~Number();
 	void InitBit(int value);
 	int TruncBit(int bitNum);
 	int SetBit(int bitIdx, int bitVal);
 	void Dump(std::fstream& fs);
-	int GetType();
+	int GetType(int bitIdx);
 public:
 	typedef std::map<int, int>::iterator Iterator;
 	Iterator begin();
 	Iterator end();
 private:
-	int m_val;
-	int m_type;
-	unsigned int m_bitNum;
+	std::map<int, int> m_type;
 	std::map<int, int> m_bit;
 };
 

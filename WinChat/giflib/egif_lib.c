@@ -381,10 +381,10 @@ EGifPutImageDesc(GifFileType *GifFile,
     GifFile->Image.Height = Height;
     GifFile->Image.Interlace = Interlace;
     if (ColorMap) {
-	if (GifFile->Image.ColorMap != NULL) {
-	    GifFreeMapObject(GifFile->Image.ColorMap);
-	    GifFile->Image.ColorMap = NULL;
-	}
+	    if (GifFile->Image.ColorMap != NULL) {
+	        GifFreeMapObject(GifFile->Image.ColorMap);
+	        GifFile->Image.ColorMap = NULL;
+	    }
         GifFile->Image.ColorMap = GifMakeMapObject(ColorMap->ColorCount,
                                                 ColorMap->Colors);
         if (GifFile->Image.ColorMap == NULL) {
@@ -409,7 +409,7 @@ EGifPutImageDesc(GifFileType *GifFile,
 
     /* If we have Global color map - dump it also: */
     if (ColorMap != NULL) {
-	int i;
+	    int i;
         for (i = 0; i < ColorMap->ColorCount; i++) {
             /* Put the ColorMap out also: */
             Buf[0] = ColorMap->Colors[i].Red;

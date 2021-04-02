@@ -439,13 +439,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-#if 0
+#if 1
 	std::fstream fsNum;
 	Octree oct(3);
 
 	for (int i = 1; i < 1; i++) {
 		fsNum.open(std::to_string(i) + "number_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
-		Number num(i, 0xF0FFFFF0 + i);
+		Number num(i);
 		num.TruncBit(3);
 		num.Dump(fsNum);
 		fsNum.close();
@@ -456,7 +456,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	fsOct.open("octree_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
 	oct.Dump(fsOct);
 	fsOct.close();
-	Number num(1, 1);
+	Number num(1);
 	fsOct.open("pickup_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
 	oct.PickupNumber(num, pow(8,3) - 2, fsOct);
 	num.Dump(fsOct);
