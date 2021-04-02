@@ -219,17 +219,13 @@ void OctreeNode::Dump(std::fstream& fs, unsigned int idxChild)
 	}
 }
 
-Octree::Octree()
-	:m_depth(0), m_root(NULL),m_childNum(8)
-{
-	m_root = new OctreeNode(0, 65535);
-}
-
 Octree::Octree(int depth)
 	: m_depth(depth), m_root(NULL), m_childNum(8)
 {
 	m_root = new OctreeNode(0, 65535);
-	InitChild(m_root, 1, m_depth);
+	if (depth > 0) {
+		InitChild(m_root, 1, m_depth);
+	}
 }
 
 Octree::~Octree()

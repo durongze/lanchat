@@ -441,7 +441,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
 #if 1
 	std::fstream fsNum;
-	Octree oct(1);
+	Octree oct(0);
 
 	for (int i = 1; i < 1; i++) {
 		fsNum.open(std::to_string(i) + "number_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
@@ -452,8 +452,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 
 	Number num(1);
-	for (int i = 0; i < 32; i++) {
-		num.SetBit(i, rand() % 8, 9);
+	num.TruncBit(0);
+	for (int i = 0; i < 12; i++) {
+		num.SetBit(i + 1, 12 - i, 9);
 	}
 	oct.InsertNumber(num);
 	std::fstream fsOct;

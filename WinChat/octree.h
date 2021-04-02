@@ -49,8 +49,7 @@ private:
 class Octree
 {
 public:
-	Octree();
-	Octree(int depth);
+	Octree(int depth = 0);
 	~Octree();
 	void InitChild(OctreeNode *child, int level, int depth, int base = 0);
 	int InsertNumber(Number& num);
