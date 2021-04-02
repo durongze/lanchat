@@ -9,7 +9,7 @@ public:
 	~Number();
 	void InitBit(int value);
 	int TruncBit(int bitNum);
-	int SetBit(int bitIdx, int bitVal);
+	int SetBit(int bitIdx, int typeIdx, int bitVal);
 	void Dump(std::fstream& fs);
 	int GetType(int bitIdx);
 public:

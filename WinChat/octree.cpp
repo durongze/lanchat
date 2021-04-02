@@ -39,20 +39,23 @@ int Number::TruncBit(int bitNum)
 	return 0;
 }
 
-int Number::SetBit(int bitIdx, int bitVal)
+int Number::SetBit(int bitIdx, int typeIdx, int bitVal)
 {
 	m_bit[bitIdx] = bitVal;
+	m_type[bitIdx] = typeIdx;
 	return 0;
 }
 
 void Number::Dump(std::fstream& fs)
 {
 	std::map<int, int>::iterator iterB, iterT;
+	fs << typeid(this).name() << " " << __FUNCTION__ << std::endl;
 	for (iterB = m_bit.begin(), iterT = m_type.begin();
 		iterB != m_bit.end() && iterT != m_type.end();
 		++iterB, ++iterT) {
 		fs << "[" << iterB->first << ","  << iterT->second << "," << iterB->second << "] ";
 	}
+	fs << std::endl;
 }
 
 int Number::GetType(int bitIdx)
@@ -211,7 +214,7 @@ void OctreeNode::Dump(std::fstream& fs, unsigned int idxChild)
 			fs << "    ";
 		}
 		if (iter->second) {
-			iter->second->Dump(fs, idx);
+			iter->second->Dump(fs, iter->first);
 		}
 	}
 }
@@ -301,9 +304,10 @@ int Octree::PickupNumber(Number& num, int idx, std::fstream& fsOct)
 	for (i = 1;	i <= m_depth && child != NULL; i++) {
 		idxChild = GetChildIdx(idx, i);
 		child = child->NextChild(idxChild);
-		num.SetBit(i - 1, child->GetValue());
+		num.SetBit(i - 1, 9, child->GetValue());
 		fsOct << "[" << i << "," << idxChild << "," << child->GetValue() << "] ";
 	}
+	fsOct << std::endl;
 	num.TruncBit(m_depth);
 
 	return 0;

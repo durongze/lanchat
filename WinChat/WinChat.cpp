@@ -441,7 +441,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
 #if 1
 	std::fstream fsNum;
-	Octree oct(3);
+	Octree oct(1);
 
 	for (int i = 1; i < 1; i++) {
 		fsNum.open(std::to_string(i) + "number_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
@@ -449,14 +449,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		num.TruncBit(3);
 		num.Dump(fsNum);
 		fsNum.close();
-		oct.InsertNumber(num);
 	}
 
+	Number num(1);
+	for (int i = 0; i < 32; i++) {
+		num.SetBit(i, rand() % 8, 9);
+	}
+	oct.InsertNumber(num);
 	std::fstream fsOct;
 	fsOct.open("octree_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
 	oct.Dump(fsOct);
 	fsOct.close();
-	Number num(1);
+
 	fsOct.open("pickup_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
 	oct.PickupNumber(num, pow(8,3) - 2, fsOct);
 	num.Dump(fsOct);
