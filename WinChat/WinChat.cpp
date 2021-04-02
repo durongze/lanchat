@@ -847,6 +847,8 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		AVATAR_X, AVATAR_Y, AVATAR_WIDTH, AVATAR_HEIGHT,
 		hWnd, (HMENU)IDC_AVATAR, hInst, NULL);
 
+	RegisterHotKey(hWnd, IDC_RECORD, MOD_CONTROL, '0');
+
 	SetWindowText(g_hIpAddr, TEXT("127.0.0.1"));
 	SetWindowText(g_hPort, TEXT("3000"));
 
@@ -855,6 +857,17 @@ int HandleCreateMsg(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	GetUserName(user, &userLen);
 	SetWindowText(g_hSendMsg, user);
 
+	return 0;
+}
+
+int HandleHotKey(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	int idHotKey = (int)wParam;              // identifier of hot key 
+	UINT uinfuModifiers = (UINT)LOWORD(lParam);  // key-modifier flags 
+	UINT uVirtKey = (UINT)HIWORD(lParam);     // virtual-key code 
+	if (idHotKey == IDC_RECORD && uinfuModifiers == MOD_CONTROL && uVirtKey == '0') {
+		HandleCmdRecord(hWnd, message, wParam, lParam);
+	}
 	return 0;
 }
 //
@@ -885,6 +898,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+	case WM_HOTKEY:
+		HandleHotKey(hWnd, message, wParam, lParam);
+		break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

@@ -318,7 +318,7 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 {
 	int errorStatus;
 	static GifFileType *pGifFile = NULL;
-	ColorMapObject *pColorMap = &g_pColorMap;
+	static ColorMapObject* pColorMap = NULL;
 	if (pGifFile == NULL && g_frameIdx == 0) {
 		pGifFile = EGifOpenFileName((gifDir + std::to_string(time(0)) + ".gif").c_str(), 0, &errorStatus);
 		if (pGifFile == NULL) {
@@ -326,6 +326,8 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 		}
 		pGifFile->SWidth = Width;
 		pGifFile->SHeight = Height;
+		// pColorMap = GifMakeMapObject(256, NULL);
+		pColorMap = &g_pColorMap;
 		GifWriteScreen(pGifFile, pColorMap);
 	}
 
@@ -338,6 +340,8 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 		EGifCloseFile(pGifFile, &errorStatus);
 		pGifFile = NULL;
 		g_frameIdx = -1;
+		// GifFreeMapObject(pColorMap);
+		pColorMap = NULL;
 	}
 	return 0;
 }
