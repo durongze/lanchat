@@ -2,35 +2,45 @@
 #define __OCTREE_H__
 #include <map>
 #include <fstream>
+
 class Number
 {
 public:
-	Number(int value);
+	Number(int value = 0);
 	~Number();
 	void InitBit(int value);
 	int TruncBit(int bitNum);
-	int SetBit(int bitIdx, int typeIdx, int bitVal);
+	int SetBit(int bitIdx, int tabIdx, int mapIdx);
 	void Dump(std::fstream& fs);
-	int GetType(int bitIdx);
+	int GetTabIdx(int bitIdx);
+	int GetMapIdx(int bitIdx);
 public:
-	typedef std::map<int, int>::iterator Iterator;
+	struct Bit
+	{
+		int tabIdx;
+		int mapIdx;
+	public:
+		Bit(int t = 0, int m = 0) : tabIdx(t), mapIdx(m) {}
+		Bit(const Bit& b) { if (this == &b) return; tabIdx = b.tabIdx, mapIdx = b.mapIdx; }
+		Bit& operator=(const Bit& b) { if (this == &b) return *this; tabIdx = b.tabIdx, mapIdx = b.mapIdx; }
+		bool operator==(const Bit& b) { return tabIdx == b.tabIdx && mapIdx == b.mapIdx; }
+	};
+	typedef std::map<int, Bit>::iterator Iterator;
 	Iterator begin();
 	Iterator end();
 private:
-	std::map<int, int> m_type;
-	std::map<int, int> m_bit;
+	std::map<int, Bit> m_bit;
 };
 
 class OctreeNode
 {
 public:
-	OctreeNode();
-	OctreeNode(int level, int value);
+	OctreeNode(int level = 0, int tabIdx = 0, int mapIdx = 0);
 	OctreeNode(const OctreeNode& node);
 	~OctreeNode();
 
 public:
-	int Assign(int level, int value);
+	int Assign(int level, int value, int idxNum);
 	int Assign(const OctreeNode& node);
 	int InsertChild(int idx, OctreeNode*& node);
 	int ReplaceChild(int idx, OctreeNode*& node);
@@ -38,11 +48,13 @@ public:
 	int PeekChild(int idx, OctreeNode& node);
 	void Dump(std::fstream& fs, unsigned int idxChild);
 	OctreeNode *NextChild(int idxChild);
-	int GetValue();
+	Number::Bit GetValue();
 	int GetLevel();
+	int ContainsChild(int idxNum);
 private:
 	std::map<int, OctreeNode*> m_childNode;
-	int m_val;
+	OctreeNode* m_parent;
+	Number::Bit m_val;
 	int m_lvl;
 };
 
@@ -56,6 +68,7 @@ public:
 	int GetChildIdx(int idxAllChild, int level);
 	OctreeNode *GetChild(int idxAllChild, int level, int& idxChild);
 	int PickupNumber(Number& num, int idx, std::fstream& fsOct);
+	int GetNumberType(Number& num);
 	void Dump(std::fstream& fs);
 private:
 	int m_childNum;

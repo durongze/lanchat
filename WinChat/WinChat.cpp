@@ -439,7 +439,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-#if 1
+#if 0
 	std::fstream fsNum;
 	Octree oct(0);
 

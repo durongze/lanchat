@@ -280,6 +280,19 @@ int GifWriteScreen(GifFileType *pGifFile, ColorMapObject *pColorMap)
 	return 0;
 }
 
+#include "octree.h"
+
+int GifColorTypeToNumber(GifColorType& color, Number &num, int idxNum)
+{
+	for (int j = 7; j >= 0; --j) {
+		int v = (color.Red & (1 << j)) >> j << 2 | (color.Green & (1 << j)) >> j << 1 | (color.Blue & (1 << j)) >> j;
+		num.SetBit(8 - j, v, idxNum);
+	}
+	return 0;
+}
+
+static Octree o;
+
 int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bits, uint8_t pixByte)
 {
 	// 写入image descriptor块，因为不使用局部颜色表，传入nullptr，而不传pColorMap
@@ -293,13 +306,14 @@ int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bi
 		uint8_t rr = *(bits + k * pixByte + 0);
 		uint8_t gg = *(bits + k * pixByte + 1);
 		uint8_t bb = *(bits + k * pixByte + 2);
-
+		GifColorType color = { rr, gg, bb };
 		// 将颜色匹配到颜色表的索引颜色 256色
+#if 0
 		for (int i = 0; i < (1 << 8); i++) {
 			int dis =
-				(rr - (*(pCm + i)).Red)*(rr - (*(pCm + i)).Red) +
-				(gg - (*(pCm + i)).Green)*(gg - (*(pCm + i)).Green) +
-				(bb - (*(pCm + i)).Blue)*(bb - (*(pCm + i)).Blue);
+				(rr - pCm[i].Red)*(rr - pCm[i].Red) +
+				(gg - pCm[i].Green)*(gg - pCm[i].Green) +
+				(bb - pCm[i].Blue)*(bb - pCm[i].Blue);
 			if (dis < mindis) {
 				mindis = dis;
 				index = i;
@@ -309,8 +323,31 @@ int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bi
 				break;
 			}
 		}
+#endif
+		Number n;
+		GifColorTypeToNumber(color, n, 0);
+		index = o.GetNumberType(n);
 		EGifPutPixel(pGifFile, (uint8_t)index);
 	}
+	return 0;
+}
+
+
+int ColorMapObjectToOctree(ColorMapObject* pColorMap)
+{
+	for (int i = 0; i < pColorMap->ColorCount; i++) {
+		Number num;
+		for (int j = 7; j >= 0; --j) {
+			int type = ((pColorMap->Colors[i].Red & (1 << j)) >> j << 2) | ((pColorMap->Colors[i].Green & (1 << j)) >> j << 1) | ((pColorMap->Colors[i].Blue & (1 << j)) >> j);
+			num.SetBit(8 - j, type, i);
+		}
+		o.InsertNumber(num);
+	}
+	std::fstream fsOct;
+	fsOct.open("o_log.txt", std::ios::trunc | std::ios::out | std::ios::in);
+	o.Dump(fsOct);
+	fsOct.close();
+
 	return 0;
 }
 
@@ -328,6 +365,7 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 		pGifFile->SHeight = Height;
 		// pColorMap = GifMakeMapObject(256, NULL);
 		pColorMap = &g_pColorMap;
+		ColorMapObjectToOctree(pColorMap);
 		GifWriteScreen(pGifFile, pColorMap);
 	}
 
