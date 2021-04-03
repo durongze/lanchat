@@ -146,7 +146,7 @@
 		{
 			pStart = pData + (lineStart * lineSize);
 			pEnd = pData + (lineEnd * lineSize);
-			if (pStart == NULL || pEnd == NULL) { break; }
+			// if (pStart == NULL || pEnd == NULL) { break; }
 			// Swap the top with the bottom
 			memcpy(pLineData, pStart, lineSize);
 			memcpy(pStart, pEnd, lineSize);
@@ -339,15 +339,15 @@
 			HBITMAP hBitmap = CreateCompatibleBitmap(hdcDesk, nWidth, nHeight); // 得到位图, 这3个参数必须这样传好像。  
 			HGDIOBJ hObj = SelectObject(hdcCopy, hBitmap); // 好像总得这么写。   
 			bool bRet = BitBlt(hdcCopy, 0, 0, nWidth, nHeight, hdcDesk, mouse.x, mouse.y, SRCCOPY);
-			auto hcopy = (HBITMAP)CopyImage(hBitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION); //以上代码是正确的，因为hBitmap对了
-			GetObject(hcopy, sizeof(bm), &bm);
-			ret = tc->svr.Send(bm);
-			if (ret > 0) {
-				Sleep(1);
+			auto hcopy = CopyImage(hBitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION); //以上代码是正确的，因为hBitmap对了
+			if (hcopy) {
+				GetObject(hcopy, sizeof(bm), &bm);
+				ret = tc->svr.Send(bm);
+				DeleteObject(hcopy);
 			}
 			DeleteObject(hBitmap);
-			DeleteObject(hcopy);
 			DeleteObject(hObj);
+			DeleteDC(hdcCopy);
 			DeleteDC(hdcDesk);
 			Sleep(111);
 		}

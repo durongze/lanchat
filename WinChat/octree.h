@@ -70,6 +70,7 @@ public:
 	int PickupNumber(Number& num, int idx, std::fstream& fsOct);
 	int GetNumberType(Number& num);
 	void Dump(std::fstream& fs);
+	void Clear();
 private:
 	int m_childNum;
 	int m_depth;

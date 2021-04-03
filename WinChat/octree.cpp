@@ -339,3 +339,11 @@ void Octree::Dump(std::fstream& fs)
 	}
 }
 
+void Octree::Clear()
+{
+	if (m_root) {
+		delete m_root;
+		m_root = NULL;
+	}
+}
+

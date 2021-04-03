@@ -57,7 +57,7 @@ void DumpScreen2RGBA(unsigned char *GrbBuffer,
 		}
 	}
 }
-ColorMapObject g_pColorMap = {0};
+ColorMapObject *g_pColorMap = NULL;
 
 int HandleImageSave(std::string imgFile, GifFileType *GifFile, unsigned char *GrbBuffer, uint8_t pixByte)
 {
@@ -145,8 +145,7 @@ int HandleImageDesc(GifFileType *GifFile, GifRowType *ScreenBuffer, unsigned cha
 		fprintf(stderr, "Gif Image does not have a colormap\n");
 		exit(EXIT_FAILURE);
 	}
-	g_pColorMap = *ColorMap;
-	memcpy(g_pColorMap.Colors, ColorMap->Colors, ColorMap->ColorCount * sizeof(GifColorType));
+	g_pColorMap = GifMakeMapObject(ColorMap->ColorCount, ColorMap->Colors);
 	DumpScreen2RGBA(GrbBuffer, ColorMap, ScreenBuffer, GifFile->SWidth, GifFile->SHeight);
 
 	return 0;
@@ -254,6 +253,8 @@ int GifRead(DWORD *arg)
 				break;
 		}
 	} while (RecordType != TERMINATE_RECORD_TYPE);
+
+	DGifCloseFile(GifFile, &error);
 	return 0;
 }
 
@@ -335,12 +336,13 @@ int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bi
 }
 
 
-int ColorMapObjectToOctree(ColorMapObject* pColorMap)
+int ColorMapObjectToOctree(GifColorType* Colors, int ColorCount)
 {
-	for (int i = 0; i < pColorMap->ColorCount; i++) {
+	o.Clear();
+	for (int i = 0; i < ColorCount; i++) {
 		Number num;
 		for (int j = 7; j >= 0; --j) {
-			int type = ((pColorMap->Colors[i].Red & (1 << j)) >> j << 2) | ((pColorMap->Colors[i].Green & (1 << j)) >> j << 1) | ((pColorMap->Colors[i].Blue & (1 << j)) >> j);
+			int type = ((Colors[i].Red & (1 << j)) >> j << 2) | ((Colors[i].Green & (1 << j)) >> j << 1) | ((Colors[i].Blue & (1 << j)) >> j);
 			num.SetBit(8 - j, type, i);
 		}
 		o.InsertNumber(num);
@@ -365,22 +367,22 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 		}
 		pGifFile->SWidth = Width;
 		pGifFile->SHeight = Height;
-		// pColorMap = GifMakeMapObject(256, NULL);
-		pColorMap = &g_pColorMap;
-		ColorMapObjectToOctree(pColorMap);
+		pColorMap = GifMakeMapObject(256, (GifColorType*)bits);
+		// pColorMap = g_pColorMap;
+		ColorMapObjectToOctree(pColorMap->Colors, pColorMap->ColorCount);
 		GifWriteScreen(pGifFile, pColorMap);
 	}
 
 	if (pGifFile != NULL) {
 		GifWriteImage(pGifFile, pColorMap, bits);
-		HandleImageSave(std::to_string(g_frameIdx), pGifFile, bits);
+		// HandleImageSave(std::to_string(g_frameIdx), pGifFile, bits);
 	}
 
 	if (pGifFile != NULL && g_frameIdx++ > MAX_FRAME_NUM) {
 		EGifCloseFile(pGifFile, &errorStatus);
 		pGifFile = NULL;
 		g_frameIdx = -1;
-		// GifFreeMapObject(pColorMap);
+		GifFreeMapObject(pColorMap);
 		pColorMap = NULL;
 	}
 	return 0;
