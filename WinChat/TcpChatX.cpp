@@ -155,7 +155,7 @@
 			lineStart++;
 			lineEnd--;
 		}
-		delete pLineData;
+		delete[] pLineData;
 		return 0;
 	}
 

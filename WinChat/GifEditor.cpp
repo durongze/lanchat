@@ -66,12 +66,14 @@ int HandleImageSave(std::string imgFile, GifFileType *GifFile, unsigned char *Gr
 		return -1;
 	};
 	int bmp_size = GifFile->SWidth * GifFile->SHeight * pixByte;
+	int fh_size = sizeof(BITMAPFILEHEADER);
+	int ih_size = sizeof(BITMAPINFOHEADER);
 	
 	// 【写位图文件头】
 	BITMAPFILEHEADER bmpHeader;
-	bmpHeader.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + bmp_size;  // BMP图像文件的大小
+	bmpHeader.bfSize = fh_size + ih_size + bmp_size;  // BMP图像文件的大小
 	bmpHeader.bfType = 0x4D42;  // 位图类别，根据不同的操作系统而不同，在Windows中，此字段的值总为‘BM’
-	bmpHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);          // BMP图像数据的偏移位置
+	bmpHeader.bfOffBits = fh_size + ih_size;          // BMP图像数据的偏移位置
 	bmpHeader.bfReserved1 = 0;  // 总为0
 	bmpHeader.bfReserved2 = 0;  // 总为0
 	DWORD dwBytesWritten = 0;
