@@ -343,7 +343,7 @@ void Octree::Clear()
 {
 	if (m_root) {
 		delete m_root;
-		m_root = NULL;
+		m_root = new OctreeNode(0, 65535, 0);
 	}
 }
 

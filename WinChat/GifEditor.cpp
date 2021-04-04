@@ -335,6 +335,8 @@ int GifWriteImage(GifFileType *pGifFile, ColorMapObject *pColorMap, uint8_t * bi
 	return 0;
 }
 
+#define SPEC_BIT(val, idxBit) ((val) >> (idxBit) & 1)  // ((v) & (1 << i)) >> i
+#define COMPRESS_RGB_BIT(r,g,b, i) ((SPEC_BIT((r),(i)) << 2) | (SPEC_BIT((g), (i)) << 1) | (SPEC_BIT((b),(i))))
 
 int ColorMapObjectToOctree(GifColorType* Colors, int ColorCount)
 {
@@ -342,7 +344,8 @@ int ColorMapObjectToOctree(GifColorType* Colors, int ColorCount)
 	for (int i = 0; i < ColorCount; i++) {
 		Number num;
 		for (int j = 7; j >= 0; --j) {
-			int type = ((Colors[i].Red & (1 << j)) >> j << 2) | ((Colors[i].Green & (1 << j)) >> j << 1) | ((Colors[i].Blue & (1 << j)) >> j);
+		    // int type = ((Colors[i].Red & (1 << j)) >> j << 2) | ((Colors[i].Green & (1 << j)) >> j << 1) | ((Colors[i].Blue & (1 << j)) >> j);
+			int type = COMPRESS_RGB_BIT(Colors[i].Red, Colors[i].Green, Colors[i].Blue, j);
 			num.SetBit(8 - j, type, i);
 		}
 		o.InsertNumber(num);
@@ -367,8 +370,9 @@ int GifWrite(std::string gifDir, int Width, int Height, uint8_t *bits)
 		}
 		pGifFile->SWidth = Width;
 		pGifFile->SHeight = Height;
-		pColorMap = GifMakeMapObject(256, (GifColorType*)bits);
+		pColorMap = GifMakeMapObject(256, NULL);
 		// pColorMap = g_pColorMap;
+		BitMapColorQuantizeBuffer(Width, Height, bits, NULL, pColorMap->Colors, &pColorMap->ColorCount);
 		ColorMapObjectToOctree(pColorMap->Colors, pColorMap->ColorCount);
 		GifWriteScreen(pGifFile, pColorMap);
 	}

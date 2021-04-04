@@ -68,16 +68,14 @@ QuantizedColorType *CreateColorArrayEntries(int arrSize)
     return ColorArrayEntries;
 }
 
-
-
-int InitColorArrayEntries(unsigned int Width, unsigned int Height,
+int InitColorArrayEntries(unsigned int Size,
     GifByteType* RedInput, GifByteType* GreenInput, GifByteType* BlueInput,
     QuantizedColorType* ColorArrayEntries, int arrSize)
 {
     unsigned int Index;
-    int i;
+    unsigned int i;
     /* Sample the colors and their distribution: */
-    for (i = 0; i < (int)(Width * Height); i++) {
+    for (i = 0; i < Size; i++) {
         ENC_INDEX(ENC_SHIFT(RedInput[i]), ENC_SHIFT(GreenInput[i]), ENC_SHIFT(BlueInput[i]), Index);
         ColorArrayEntries[Index].Count++;
     }
@@ -111,7 +109,7 @@ int ColorArray2Quantized(QuantizedColorType* ColorArrayEntries, int arrSize, Qua
             break;
         }
     }
-
+    *Quantized = &ColorArrayEntries[i];
     QuantizedColor = &ColorArrayEntries[i];
     NumOfEntries = 1;
     while (++i < arrSize) {
@@ -207,13 +205,13 @@ GifQuantizeBuffer(unsigned int Width,
                GifByteType * OutputBuffer,
                GifColorType * OutputColorMap) {
     unsigned int NumOfEntries;
-    unsigned int NewColorMapSize;
+    unsigned int NewColorMapSize = 1;
     NewColorMapType NewColorSubdiv[256];
     QuantizedColorType* ColorArrayEntries, *QuantizedColor;
     int arrSize = COLOR_ARRAY_SIZE;
     ColorArrayEntries = CreateColorArrayEntries(arrSize);
 
-    InitColorArrayEntries(Width, Height, RedInput, GreenInput, BlueInput, ColorArrayEntries, arrSize);
+    InitColorArrayEntries(Width * Height, RedInput, GreenInput, BlueInput, ColorArrayEntries, arrSize);
     InitNewColorMapType(NewColorSubdiv, 256);
     ColorArray2Quantized(ColorArrayEntries, arrSize, &QuantizedColor, &NumOfEntries);
     NewColorSubdiv[0].QuantizedColors = QuantizedColor;
@@ -234,11 +232,70 @@ GifQuantizeBuffer(unsigned int Width,
     return GIF_OK;
 }
 
-int ColorQuantizeBuffer(unsigned int Width, unsigned int Height,
-    int* ColorMapSize, GifColorType* BlueInput,
-    GifByteType* OutputBuffer,
-    GifColorType* OutputColorMap)
+int BitMapInitColorArrayEntries(unsigned int Size, GifByteType* Input,
+    QuantizedColorType* ColorArrayEntries, int arrSize)
 {
+    unsigned int Index;
+    unsigned int i;
+    /* Sample the colors and their distribution: */
+    for (i = 0; i < Size * 4; i += 4) {
+        ENC_INDEX(ENC_SHIFT(Input[i]), ENC_SHIFT(Input[i + 1]), ENC_SHIFT(Input[i + 2]), Index);
+        ColorArrayEntries[Index].Count++;
+    }
+    return 0;
+}
+
+int BitMapGetQuantizeBuffer(unsigned int Size, GifByteType* Input,
+    QuantizedColorType* ColorArrayEntries, GifByteType* OutputBuffer, GifColorType* OutputColorMap)
+{
+    unsigned int Index, i;
+    int MaxRGBError[3];
+    /* Finally scan the input buffer again and put the mapped index in the * output buffer.  */
+    MaxRGBError[0] = MaxRGBError[1] = MaxRGBError[2] = 0;
+    for (i = 0; i < Size * 4; i += 4) {
+        ENC_INDEX(ENC_SHIFT(Input[i]), ENC_SHIFT(Input[i + 1]), ENC_SHIFT(Input[i + 2]), Index);
+        Index = ColorArrayEntries[Index].NewColorIndex;
+        OutputBuffer[i / 4] = Index;
+        MaxRGBError[0] = MAX(MaxRGBError[0], ABS(OutputColorMap[Index].Red - Input[i]));
+        MaxRGBError[1] = MAX(MaxRGBError[1], ABS(OutputColorMap[Index].Green - Input[i + 1]));
+        MaxRGBError[2] = MAX(MaxRGBError[2], ABS(OutputColorMap[Index].Blue - Input[i + 2]));
+    }
+
+#ifdef DEBUG
+    fprintf(stderr, "Quantization L(0) errors: Red = %d, Green = %d, Blue = %d.\n",
+        MaxRGBError[0], MaxRGBError[1], MaxRGBError[2]);
+#endif /* DEBUG */
+    return 0;
+}
+
+int BitMapColorQuantizeBuffer(unsigned int Width, unsigned int Height, GifByteType* Input,
+    GifByteType* OutputBuffer, GifColorType* OutputColorMap, int* ColorMapSize)
+{
+    unsigned int NumOfEntries;
+    unsigned int NewColorMapSize = 1;
+    NewColorMapType NewColorSubdiv[256];
+    QuantizedColorType* ColorArrayEntries, * QuantizedColor;
+    int arrSize = COLOR_ARRAY_SIZE;
+    ColorArrayEntries = CreateColorArrayEntries(arrSize);
+
+    BitMapInitColorArrayEntries(Width * Height, Input, ColorArrayEntries, arrSize);
+    InitNewColorMapType(NewColorSubdiv, 256);
+    ColorArray2Quantized(ColorArrayEntries, arrSize, &QuantizedColor, &NumOfEntries);
+    NewColorSubdiv[0].QuantizedColors = QuantizedColor;
+    NewColorSubdiv[0].NumEntries = NumOfEntries; /* Different sampled colors */
+    NewColorSubdiv[0].Count = ((long)Width) * Height; /* Pixels */
+
+    if (SubdivColorMap(NewColorSubdiv, *ColorMapSize, &NewColorMapSize) != GIF_OK) {
+        free((char*)ColorArrayEntries);
+        return GIF_ERROR;
+    }
+
+    GetQuantizedColorAverage(NewColorSubdiv, NewColorMapSize, OutputColorMap, ColorMapSize);
+    if (OutputBuffer != NULL) {
+        BitMapGetQuantizeBuffer(Width * Height, Input,
+            ColorArrayEntries, OutputBuffer, OutputColorMap);
+    }
+    free((char*)ColorArrayEntries);
     return GIF_OK;
 }
 

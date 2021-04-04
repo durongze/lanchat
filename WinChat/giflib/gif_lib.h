@@ -220,10 +220,8 @@ int GifQuantizeBuffer(unsigned int Width, unsigned int Height,
                    GifByteType * GreenInput, GifByteType * BlueInput,
                    GifByteType * OutputBuffer,
                    GifColorType * OutputColorMap);
-int ColorQuantizeBuffer(unsigned int Width, unsigned int Height,
-    int* ColorMapSize, GifColorType* BlueInput,
-    GifByteType* OutputBuffer,
-    GifColorType* OutputColorMap);
+int BitMapColorQuantizeBuffer(unsigned int Width, unsigned int Height, GifByteType* Input,
+    GifByteType* OutputBuffer, GifColorType* OutputColorMap, int* ColorMapSize);
 
 /******************************************************************************
  Error handling and reporting.
